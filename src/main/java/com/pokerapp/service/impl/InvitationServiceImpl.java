@@ -14,7 +14,7 @@ import com.pokerapp.service.TableService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+//import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,7 +41,7 @@ public class InvitationServiceImpl implements InvitationService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public Invitation createInvitation(InvitationRequestDto requestDto, User sender) {
         User recipient = userRepository.findById(requestDto.getRecipientId())
                 .orElseThrow(() -> new NotFoundException("Recipient not found"));
@@ -75,7 +75,7 @@ public class InvitationServiceImpl implements InvitationService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public InvitationDto acceptInvitation(Long invitationId, User user) {
         Invitation invitation = invitationRepository.findById(invitationId)
                 .orElseThrow(() -> new NotFoundException("Invitation not found"));
@@ -98,7 +98,7 @@ public class InvitationServiceImpl implements InvitationService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public InvitationDto declineInvitation(Long invitationId, User user) {
         Invitation invitation = invitationRepository.findById(invitationId)
                 .orElseThrow(() -> new NotFoundException("Invitation not found"));

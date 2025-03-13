@@ -13,7 +13,7 @@ import com.pokerapp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+//import javax.transaction.Transactional;
 import java.util.Map;
 
 @Service
@@ -47,7 +47,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    @Transactional
+   // @Transactional
     public GameResult recordGameResult(Game game, Map<User, Double> winnings) {
         GameResult gameResult = new GameResult();
         gameResult.setGame(game);
@@ -62,7 +62,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    @Transactional
+  //  @Transactional
     public void updateUserStatistics(GameResult gameResult) {
         gameResult.getWinnings().forEach((player, amount) -> {
             Statistics statistics = statisticsRepository.findByUserId(player.getId())

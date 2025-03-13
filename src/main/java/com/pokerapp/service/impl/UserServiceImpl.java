@@ -18,7 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+//import javax.transaction.Transactional;
 
 @Service
 public class UserServiceImpl implements UserService
@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public User register(RegisterDto registerDto) {
         if (userRepository.existsByUsername(registerDto.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
@@ -97,7 +97,7 @@ public class UserServiceImpl implements UserService
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public User updateBalance(Long userId, Double amount) {
         User user = getUserById(userId);
         user.setBalance(user.getBalance() + amount);

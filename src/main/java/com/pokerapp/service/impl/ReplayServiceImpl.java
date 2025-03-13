@@ -11,7 +11,7 @@ import com.pokerapp.service.ReplayService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+//import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,7 +27,7 @@ public class ReplayServiceImpl implements ReplayService {
     }
 
     @Override
-    @Transactional
+   // @Transactional
     public Replay createReplay(Game game) {
         Replay replay = new Replay();
         replay.setGame(game);
@@ -61,7 +61,7 @@ public class ReplayServiceImpl implements ReplayService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public void completeReplay(Long gameId) {
         Replay replay = replayRepository.findByGameId(gameId)
                 .orElseThrow(() -> new NotFoundException("Replay not found for game"));

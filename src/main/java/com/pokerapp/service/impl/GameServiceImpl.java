@@ -25,7 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+//import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,7 +83,7 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public Game createGame(Long tableId) {
         PokerTable pokerTable = tableRepository.findById(tableId)
                 .orElseThrow(() -> new NotFoundException("Table not found"));
@@ -103,7 +103,7 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public Game startGame(Long gameId) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("Game not found"));
@@ -171,7 +171,7 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public GameStateDto makeMove(Long gameId, Long playerId, MoveDto moveDto) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("Game not found"));
@@ -237,7 +237,7 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public Game endGame(Long gameId) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("Game not found"));

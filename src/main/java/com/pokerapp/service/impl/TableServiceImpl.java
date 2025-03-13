@@ -15,7 +15,7 @@ import com.pokerapp.service.TableService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+//import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,7 +42,7 @@ public class TableServiceImpl implements TableService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public PokerTable createTable(TableSettingsDto settings, User owner) {
         Player ownerAsPlayer = (Player) owner;
 
@@ -80,7 +80,7 @@ public class TableServiceImpl implements TableService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public TableDto joinTable(Long tableId, Long userId, Double buyIn) {
         PokerTable pokerTable = getTableById(tableId);
         Player player = playerRepository.findById(userId)
@@ -102,7 +102,7 @@ public class TableServiceImpl implements TableService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public TableDto joinTableAsSpectator(Long tableId, Long userId) {
         PokerTable pokerTable = getTableById(tableId);
         Spectator spectator = spectatorRepository.findById(userId)
@@ -124,7 +124,7 @@ public class TableServiceImpl implements TableService {
     }
 
     @Override
-    @Transactional
+   // @Transactional
     public TableDto leaveTable(Long tableId, Long userId) {
         PokerTable pokerTable = getTableById(tableId);
         Player player = playerRepository.findById(userId)
@@ -142,7 +142,7 @@ public class TableServiceImpl implements TableService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public TableDto removeSpectator(Long tableId, Long userId) {
         PokerTable pokerTable = getTableById(tableId);
         Spectator spectator = spectatorRepository.findById(userId)
