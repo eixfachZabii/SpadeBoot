@@ -1,0 +1,37 @@
+// src/main/java/com/pokerapp/api/controller/StatisticsController.java
+package com.pokerapp.api.controller;
+
+import com.pokerapp.api.dto.response.StatisticsDto;
+import com.pokerapp.service.StatisticsService;
+import com.pokerapp.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/statistics")
+public class StatisticsController {
+
+    @Autowired
+    private final StatisticsService statisticsService;
+
+    @Autowired
+    private final UserService userService;
+
+    @Autowired
+    public StatisticsController(StatisticsService statisticsService, UserService userService) {
+        this.statisticsService = statisticsService;
+        this.userService = userService;
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<StatisticsDto> getMyStatistics() {
+        Long userId = userService.getCurrentUser().getId();
+        return ResponseEntity.ok(statisticsService.getUserStatistics(userId));
+    }
+
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<StatisticsDto> getUserStatistics(@PathVariable Long userId) {
+        return ResponseEntity.ok(statisticsService.getUserStatistics(userId));
+    }
+}
