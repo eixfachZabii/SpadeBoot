@@ -222,7 +222,7 @@ public class PokerappApplication {
             // 7. Record player statistics
             for (Player player : players) {
                 Statistics stats = new Statistics();
-                stats.setUser(player.getUser()); // Change this depending on your Statistics model
+                stats.setPlayer(player); // Change this depending on your Statistics model
                 stats.setGamesPlayed(new Random().nextInt(20) + 1);
                 stats.setGamesWon(new Random().nextInt(stats.getGamesPlayed()));
                 stats.setTotalWinnings((double) (new Random().nextInt(5000)));

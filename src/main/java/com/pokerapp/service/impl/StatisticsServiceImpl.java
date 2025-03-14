@@ -36,11 +36,11 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Override
     public StatisticsDto getUserStatistics(Long userId) {
         // First find the player associated with this user
-        Player player = playerRepository.findByUserId(userId)
+        Player player = playerRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("No player found for user with ID: " + userId));
 
         // Then get or create statistics for this player
-        Statistics statistics = statisticsRepository.findByPlayerId(player.getId())
+        Statistics statistics = statisticsRepository.findByPlayerId(player.getUserId())
                 .orElseGet(() -> {
                     Statistics newStats = new Statistics();
                     newStats.setPlayer(player);
@@ -63,7 +63,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Transactional
     public void updateUserStatistics(GameResult gameResult) {
         gameResult.getWinnings().forEach((player, amount) -> {
-            Statistics statistics = statisticsRepository.findByPlayerId(player.getId())
+            Statistics statistics = statisticsRepository.findByPlayerId(player.getUserId())
                     .orElseGet(() -> {
                         Statistics newStats = new Statistics();
                         newStats.setPlayer(player);
@@ -82,7 +82,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         StatisticsDto dto = new StatisticsDto();
         dto.setUserId(user.getId());
         dto.setUsername(user.getUsername());
-        dto.setPlayerId(player.getId());
+        dto.setPlayerId(player.getUserId());
         dto.setGamesPlayed(statistics.getGamesPlayed());
         dto.setGamesWon(statistics.getGamesWon());
         dto.setWinRate(statistics.getWinRate());

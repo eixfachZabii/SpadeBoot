@@ -25,6 +25,18 @@ public class Statistics {
     private Double totalWinnings = 0.0;
 
 
+    public void updateStats(GameResult gameResult) {
+        Double winnings = gameResult.getWinnings().getOrDefault(player.getUser(), 0.0);
+        gamesPlayed++;
+
+        if (winnings > 0) {
+            gamesWon++;
+        }
+
+        totalWinnings += winnings;
+        winRate = (double) gamesWon / gamesPlayed;
+    }
+
     public Long getId() {
         return id;
     }

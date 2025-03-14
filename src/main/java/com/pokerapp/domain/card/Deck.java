@@ -9,7 +9,7 @@ import java.util.Collections;
 
 //@Data
 @Entity
-//@Table(name = "decks")
+@Table(name = "decks")
 public class Deck {
     public Long getId() {
         return id;

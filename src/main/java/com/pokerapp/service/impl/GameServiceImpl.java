@@ -245,7 +245,7 @@ public class GameServiceImpl implements GameService {
         List<Player> winners = game.determineWinner();
 
         // Distribute pot to winners and record for statistics
-        Map<User, Double> winnings = new HashMap<>();
+        Map<Player, Double> winnings = new HashMap<>();
 
         if (!winners.isEmpty()) {
             GameRound round = game.getCurrentRound();
@@ -254,14 +254,14 @@ public class GameServiceImpl implements GameService {
             for (Player winner : winners) {
                 winner.setChips(winner.getChips() + potPerWinner);
                 playerRepository.save(winner);
-                winnings.put(winner.getUser(), potPerWinner);
+                winnings.put(winner, potPerWinner);
             }
         }
 
         // Record all participants with zero winnings if they didn't win
         for (Player player : game.getPokerTable().getPlayers()) {
             if (!winners.contains(player)) {
-                winnings.put(player.getUser(), 0.0);
+                winnings.put(player, 0.0);
             }
         }
 

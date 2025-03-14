@@ -60,4 +60,12 @@ public class StatisticsDto {
     public void setTotalWinnings(Double totalWinnings) {
         this.totalWinnings = totalWinnings;
     }
+
+    public Long getPlayerId() {
+        return playerId;
+    }
+
+    public void setPlayerId(Long playerId) {
+        this.playerId = playerId;
+    }
 }

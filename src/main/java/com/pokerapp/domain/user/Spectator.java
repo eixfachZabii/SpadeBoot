@@ -15,7 +15,8 @@ import lombok.Data;
 import java.util.Map;
 import java.util.HashMap;
 
-//@Data@Entity
+//@Data
+@Entity
 @Table(name = "spectators")
 public class Spectator {
     @Id
