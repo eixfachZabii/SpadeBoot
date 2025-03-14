@@ -6,6 +6,7 @@ import lombok.Data;
 //@Data
 public class StatisticsDto {
     private Long userId;
+    private Long playerId;
     private String username;
     private Integer gamesPlayed;
     private Integer gamesWon;
