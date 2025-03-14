@@ -11,6 +11,7 @@ import com.pokerapp.repository.PlayerRepository;
 import com.pokerapp.repository.SpectatorRepository;
 import com.pokerapp.repository.UserRepository;
 import com.pokerapp.service.UserRoleService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,7 +40,7 @@ public class UserRoleServiceImpl implements UserRoleService {
     }
 
     @Override
-    //@Transactional
+    @Transactional
     public Player convertToPlayer(User user) {
         if (user.getUserType() == UserType.PLAYER) {
             return playerRepository.findById(user.getId())

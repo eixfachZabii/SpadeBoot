@@ -16,6 +16,7 @@ import com.pokerapp.repository.PlayerRepository;
 import com.pokerapp.repository.StatisticsRepository;
 import com.pokerapp.repository.TableRepository;
 import com.pokerapp.repository.UserRepository;
+import com.pokerapp.service.UserRoleService;
 import com.pokerapp.service.UserService;
 import com.pokerapp.service.impl.UserServiceImpl;
 import com.pokerapp.api.dto.request.RegisterDto;
@@ -53,7 +54,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EntityScan(basePackages = "com.pokerapp.domain")
 public class PokerappApplication {
 
-    @Autowired
+@Autowired
 private UserService userService;
 
 @Autowired
@@ -76,6 +77,9 @@ private StatisticsRepository statisticsRepository;
 
 @Autowired
 private InvitationRepository invitationRepository;
+
+@Autowired
+private UserRoleService userRoleService;
 
 
     public static void main(String[] args) {
@@ -136,7 +140,7 @@ public void execCodeAfterStartup() {
         beginnerTable.setMinBuyIn(10.0);
         beginnerTable.setMaxBuyIn(100.0);
         beginnerTable.setPrivate(false);
-        beginnerTable.setOwner(convertToPlayer(players.get(0)));
+        beginnerTable.setOwner(userRoleService.convertToPlayer(players.get(0)));
         tableRepository.save(beginnerTable);
         System.out.println("✅ Created table: " + beginnerTable.getName());
         
@@ -148,7 +152,7 @@ public void execCodeAfterStartup() {
         proTable.setMinBuyIn(500.0);
         proTable.setMaxBuyIn(5000.0);
         proTable.setPrivate(false);
-        proTable.setOwner(convertToPlayer(players.get(1)));
+        proTable.setOwner(userRoleService.convertToPlayer(players.get(1)));
         tableRepository.save(proTable);
         System.out.println("✅ Created table: " + proTable.getName());
         
@@ -160,7 +164,7 @@ public void execCodeAfterStartup() {
         privateTable.setMinBuyIn(200.0);
         privateTable.setMaxBuyIn(1000.0);
         privateTable.setPrivate(true);
-        privateTable.setOwner(convertToPlayer(players.get(2)));
+        privateTable.setOwner(userRoleService.convertToPlayer(players.get(2)));
         tableRepository.save(privateTable);
         System.out.println("✅ Created table: " + privateTable.getName());
         
@@ -168,16 +172,16 @@ public void execCodeAfterStartup() {
         System.out.println("\n🧑‍🤝‍🧑 Adding players to tables...");
         
         // Add players to beginner table
-        Player player1 = convertToPlayer(players.get(0));
-        Player player2 = convertToPlayer(players.get(3));
+        Player player1 = userRoleService.convertToPlayer(players.get(0));
+        Player player2 = userRoleService.convertToPlayer(players.get(3));
         beginnerTable.addPlayer(player1, 50.0);
         beginnerTable.addPlayer(player2, 75.0);
         tableRepository.save(beginnerTable);
         System.out.println("✅ Added players to " + beginnerTable.getName());
         
         // Add players to pro table
-        Player player3 = convertToPlayer(players.get(1));
-        Player player4 = convertToPlayer(players.get(4));
+        Player player3 = userRoleService.convertToPlayer(players.get(1));
+        Player player4 = userRoleService.convertToPlayer(players.get(4));
         proTable.addPlayer(player3, 1000.0);
         proTable.addPlayer(player4, 2000.0);
         tableRepository.save(proTable);
@@ -222,7 +226,7 @@ public void execCodeAfterStartup() {
         
         // 7. Record player statistics
         for (User userPlayer : players) {
-            Player player = convertToPlayer(userPlayer);
+            Player player = userRoleService.convertToPlayer(userPlayer);
             Statistics stats = new Statistics();
             stats.setUser(player);
             stats.setGamesPlayed(new Random().nextInt(20) + 1);
@@ -235,7 +239,7 @@ public void execCodeAfterStartup() {
         
         // 8. Create invitations
         Invitation invitation = new Invitation();
-        invitation.setSender(convertToPlayer(players.get(2)));
+        invitation.setSender(userRoleService.convertToPlayer(players.get(2)));
         invitation.setRecipient(players.get(3));
         invitation.setTableId(privateTable.getId());
         invitation.setMessage("Join my exclusive table for a high-stakes game!");
@@ -254,27 +258,4 @@ public void execCodeAfterStartup() {
         e.printStackTrace();
     }
 }
-
-// Helper method to convert User to Player
-private Player convertToPlayer(User user) {
-    // Check if already a Player
-    if (user instanceof Player) {
-        return (Player) user;
-    }
-    
-    // Otherwise create a new Player
-    Player player = new Player();
-    player.setId(user.getId());
-    player.setUsername(user.getUsername());
-    player.setEmail(user.getEmail());
-    player.setPassword(user.getPassword());
-    player.setBalance(user.getBalance());
-    player.setRoles(user.getRoles());
-    player.setUserType(UserType.PLAYER);
-    player.addRole("PLAYER");
-    player.setHand(new Hand());
-    
-    return playerRepository.save(player);
-}
-
 }
