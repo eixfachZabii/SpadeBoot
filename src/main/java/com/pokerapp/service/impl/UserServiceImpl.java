@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    //@Transactional
+    @Transactional
     public User register(RegisterDto registerDto) {
 //        if (userRepository.existsByUsername(registerDto.getUsername())) {
 //            throw new IllegalArgumentException("Username already exists");
@@ -53,11 +53,13 @@ public class UserServiceImpl implements UserService {
                 //passwordEncoder.encode(
                 registerDto.getPassword()
         );
-        user.setBalance(100.0); // Default starting balance
+        user.setBalance(1000.0); // Default starting balance
         user.setUserType(UserType.REGULAR);
-        user.addRole("USER");
 
+        user = userRepository.save(user);
         System.out.println("CRASHOUTTTT");
+
+        user.addRole("USER");
 
         return userRepository.save(user);
     }

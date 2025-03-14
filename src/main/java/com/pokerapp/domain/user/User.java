@@ -8,7 +8,7 @@ import java.util.Set;
 
 //@Data
 @Entity
-//@Table(name = "users")
+@Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class User {
     @Id
@@ -95,13 +95,13 @@ public class User {
     @Column(unique = true)
     private String email;
 
-    private Double balance = 100.0; // Default starting balance
+    private Double balance = 1000.0; // Default starting balance
 
     @Lob
     private byte[] avatar;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    //@CollectionTable(name = "user_roles")
+    @CollectionTable(name = "user_roles")
     @Column(name = "role")
     private Set<String> roles = new HashSet<>();
 

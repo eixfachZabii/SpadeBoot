@@ -4,6 +4,7 @@ package com.pokerapp;
 import com.pokerapp.api.dto.request.RegisterDto;
 import com.pokerapp.domain.user.User;
 import com.pokerapp.service.impl.UserServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -17,6 +18,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EntityScan(basePackages = "com.pokerapp.domain")
 public class PokerappApplication {
 
+    @Autowired
+    private UserServiceImpl userService;
+
 //    @Autowired
 //    private PasswordEncoder passwordEncoder;
 
@@ -26,21 +30,23 @@ public class PokerappApplication {
 
     @EventListener(ApplicationReadyEvent.class)
     public void execCodeAfterStartup() {
-        User Markus = new User();
-        Markus.setUsername("Markus");
-        Markus.setPassword("Markus");
-        Markus.setEmail("Markus@gmail.com");
-        Markus.addRole("User");
+//        User Markus = new User();
+//        Markus.setUsername("ALFONSKEMPERISTTOLL5");
+//        Markus.setPassword("ALFONSKEMPERISTTOLL5");
+//        Markus.setEmail("ALFONSKEMPERISTTOLL5@gmail.com");
+//        Markus.addRole("User");
 
-        UserServiceImpl userService = new UserServiceImpl();
         RegisterDto Hubsi = new RegisterDto();
 
-        Hubsi.setUsername("Hubsi");
-        Hubsi.setPassword("Hubsi");
-        Hubsi.setEmail("Hubsi@gmail.com");
+        Hubsi.setUsername("ALFONSKEMPERISTTOLL6");
+        Hubsi.setPassword("ALFONSKEMPERISTTOLL6");
+        Hubsi.setEmail("ALFONSKEMPERISTTOLL6@gmail.com");
+
 
 
         userService.register(Hubsi);
+
+        System.out.println("successfully registered");
     }
 
 }
