@@ -83,7 +83,7 @@ public class TableController {
         dto.setMinBuyIn(pokerTable.getMinBuyIn());
         dto.setMaxBuyIn(pokerTable.getMaxBuyIn());
         dto.setPrivate(pokerTable.getPrivate());
-        dto.setOwnerId(pokerTable.getOwner().getId());
+        dto.setOwnerId(pokerTable.getOwner().getUserId());
         dto.setHasActiveGame(pokerTable.getCurrentGame() != null);
         return dto;
     }

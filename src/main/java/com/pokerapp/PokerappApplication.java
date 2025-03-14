@@ -7,8 +7,7 @@ import com.pokerapp.domain.game.*;
 import com.pokerapp.domain.invitation.Invitation;
 import com.pokerapp.domain.invitation.InvitationStatus;
 import com.pokerapp.domain.statistics.GameResult;
-import com.pokerapp.domain.user.Player;
-import com.pokerapp.domain.user.User;
+import com.pokerapp.domain.user.*;
 import com.pokerapp.repository.GameRepository;
 import com.pokerapp.repository.GameResultRepository;
 import com.pokerapp.repository.InvitationRepository;
@@ -28,7 +27,7 @@ import com.pokerapp.domain.statistics.GameResult;
 import com.pokerapp.domain.statistics.Statistics;
 import com.pokerapp.domain.user.Player;
 import com.pokerapp.domain.user.User;
-import com.pokerapp.domain.user.UserType;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -223,7 +222,7 @@ public class PokerappApplication {
             // 7. Record player statistics
             for (Player player : players) {
                 Statistics stats = new Statistics();
-                stats.setUser(player); // Change this depending on your Statistics model
+                stats.setUser(player.getUser()); // Change this depending on your Statistics model
                 stats.setGamesPlayed(new Random().nextInt(20) + 1);
                 stats.setGamesWon(new Random().nextInt(stats.getGamesPlayed()));
                 stats.setTotalWinnings((double) (new Random().nextInt(5000)));
@@ -234,7 +233,7 @@ public class PokerappApplication {
             
             // 8. Create invitations
             Invitation invitation = new Invitation();
-            invitation.setSender(players.get(2));
+            invitation.setSender(players.get(2).getUser());
             invitation.setRecipient(users.get(3)); // Adjust based on your model - recipient may be User or Player
             invitation.setTableId(privateTable.getId());
             invitation.setMessage("Join my exclusive table for a high-stakes game!");
@@ -261,7 +260,7 @@ public class PokerappApplication {
         Player player = new Player();
         player.setUser(user);
         player.setChips(0.0);
-        player.setStatus(PlayerStatus.SITTING_OUT); 
+        player.setStatus(PlayerStatus.SITTING_OUT);
         player.setHand(new Hand());
         return playerRepository.save(player);
     }

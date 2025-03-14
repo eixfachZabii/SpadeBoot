@@ -48,7 +48,7 @@ public class ReplayServiceImpl implements ReplayService {
         // This is a simplified example
         return replayRepository.findAll().stream()
                 .filter(r -> r.getGame().getPokerTable().getPlayers().stream()
-                        .anyMatch(p -> p.getId().equals(userId)))
+                        .anyMatch(p -> p.getUserId().equals(userId)))
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
@@ -85,7 +85,7 @@ public class ReplayServiceImpl implements ReplayService {
                 .map(action -> {
                     GameActionDto actionDto = new GameActionDto();
                     actionDto.setId(action.getId());
-                    actionDto.setPlayerId(action.getPlayer().getId());
+                    actionDto.setPlayerId(action.getPlayer().getUserId());
                     actionDto.setPlayerName(action.getPlayer().getUsername());
                     actionDto.setActionType(action.getActionType());
                     actionDto.setActionData(action.getActionData());

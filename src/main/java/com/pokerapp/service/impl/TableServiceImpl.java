@@ -44,7 +44,7 @@ public class TableServiceImpl implements TableService {
     @Override
     //@Transactional
     public PokerTable createTable(TableSettingsDto settings, User owner) {
-        Player ownerAsPlayer = (Player) owner;
+        Player ownerAsPlayer = playerRepository.findById(owner.getId()).orElseThrow();
 
         PokerTable pokerTable = new PokerTable();
         pokerTable.setName(settings.getName());
@@ -169,7 +169,7 @@ public class TableServiceImpl implements TableService {
         dto.setMinBuyIn(pokerTable.getMinBuyIn());
         dto.setMaxBuyIn(pokerTable.getMaxBuyIn());
         dto.setPrivate(pokerTable.getPrivate());
-        dto.setOwnerId(pokerTable.getOwner().getId());
+        dto.setOwnerId(pokerTable.getOwner().getUserId());
         dto.setHasActiveGame(pokerTable.getCurrentGame() != null);
         return dto;
     }

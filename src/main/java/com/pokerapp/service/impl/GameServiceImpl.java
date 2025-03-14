@@ -152,7 +152,7 @@ public class GameServiceImpl implements GameService {
                 // Set current player
                 Player nextPlayer = bettingRound.getNextPlayer();
                 if (nextPlayer != null) {
-                    gameStateDto.setCurrentPlayerId(nextPlayer.getId());
+                    gameStateDto.setCurrentPlayerId(nextPlayer.getUserId());
 
                     // Add possible actions for current player
                     List<String> possibleActions = getPossibleActions(game, nextPlayer);
@@ -254,14 +254,14 @@ public class GameServiceImpl implements GameService {
             for (Player winner : winners) {
                 winner.setChips(winner.getChips() + potPerWinner);
                 playerRepository.save(winner);
-                winnings.put(winner, potPerWinner);
+                winnings.put(winner.getUser(), potPerWinner);
             }
         }
 
         // Record all participants with zero winnings if they didn't win
         for (Player player : game.getPokerTable().getPlayers()) {
             if (!winners.contains(player)) {
-                winnings.put(player, 0.0);
+                winnings.put(player.getUser(), 0.0);
             }
         }
 
@@ -287,7 +287,7 @@ public class GameServiceImpl implements GameService {
         if (bettingRound == null) return false;
 
         Player nextPlayer = bettingRound.getNextPlayer();
-        return nextPlayer != null && nextPlayer.getId().equals(player.getId());
+        return nextPlayer != null && nextPlayer.getUser().getId().equals(player.getUser().getId());
     }
 
     private boolean isBettingRoundComplete(BettingRound bettingRound) {
@@ -421,7 +421,7 @@ public class GameServiceImpl implements GameService {
 
     private PlayerStateDto convertToPlayerStateDto(Player player, Game game) {
         PlayerStateDto dto = new PlayerStateDto();
-        dto.setId(player.getId());
+        dto.setId(player.getUserId());
         dto.setUsername(player.getUsername());
         dto.setChips(player.getChips());
         dto.setStatus(player.getStatus().toString());
@@ -432,7 +432,7 @@ public class GameServiceImpl implements GameService {
                         game.getCurrentRound().getCurrentBettingRound() != null &&
                         game.getCurrentRound().getCurrentBettingRound().getStage() == BettingStage.RIVER);
 
-        if (player.getHand() != null && (showCards || player.getId().equals(getCurrentUserId()))) {
+        if (player.getHand() != null && (showCards || player.getUserId().equals(getCurrentUserId()))) {
             List<CardDto> cards = player.getHand().getCards().stream()
                     .map(this::convertToCardDto)
                     .collect(Collectors.toList());
