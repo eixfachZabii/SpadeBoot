@@ -35,8 +35,13 @@ public class PokerTable {
     @ManyToOne
     private Player owner;
 
-    @OneToMany
-    private List<Player> players = new ArrayList<>();
+    @ManyToMany
+    @JoinTable(
+            name = "poker_tables_players",
+            joinColumns = @JoinColumn(name = "poker_table_id"),
+            inverseJoinColumns = @JoinColumn(name = "players_id")
+    )
+    private Set<Player> players = new HashSet<>();
 
     @ManyToMany
     @JoinTable(
@@ -62,6 +67,11 @@ public class PokerTable {
     }
 
     public boolean addPlayer(Player player, Double buyIn) {
+
+        if(players.stream().anyMatch(p -> p.getUserId().equals(player.getUserId()))) {
+            return true;
+        }
+
         if (players.size() >= maxPlayers) {
             return false;
         }
@@ -167,11 +177,11 @@ public class PokerTable {
         this.owner = owner;
     }
 
-    public List<Player> getPlayers() {
+    public Set<Player> getPlayers() {
         return players;
     }
 
-    public void setPlayers(List<Player> players) {
+    public void setPlayers(Set<Player> players) {
         this.players = players;
     }
 

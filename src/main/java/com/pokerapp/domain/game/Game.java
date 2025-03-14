@@ -27,7 +27,7 @@ public class Game {
     @Enumerated(EnumType.STRING)
     private GameStatus status = GameStatus.WAITING;
 
-    @ManyToOne
+    @OneToOne(cascade = CascadeType.ALL)
     private PokerTable pokerTable;
 
     @OneToOne(cascade = CascadeType.ALL)

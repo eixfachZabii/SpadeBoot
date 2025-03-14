@@ -178,7 +178,7 @@ public class PokerappApplication {
             
             // Add players to pro table
             proTable.addPlayer(players.get(1), 1000.0);
-            proTable.addPlayer(players.get(4), 2000.0);
+            proTable.addPlayer(players.get(4), 1500.0);
             tableRepository.save(proTable);
             System.out.println("✅ Added players to " + proTable.getName());
             
