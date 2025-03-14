@@ -2,7 +2,7 @@
 package com.pokerapp.domain.card;
 
 import jakarta.persistence.*;
-import lombok.Data;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
@@ -38,10 +38,10 @@ public class Deck {
     public void initialize() {
         if (cards.isEmpty()) {
             for (Suit suit : Suit.values()) {
-                for (Rank rank : Rank.values()) {
+                for (c_Rank cRank : c_Rank.values()) {
                     Card card = new Card();
                     card.setSuit(suit);
-                    card.setRank(rank);
+                    card.setRank(cRank);
                     card.setShowing(false);
                     cards.add(card);
                 }

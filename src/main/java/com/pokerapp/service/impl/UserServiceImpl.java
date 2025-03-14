@@ -18,52 +18,46 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-//import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 @Service
-public class UserServiceImpl implements UserService
-{
+public class UserServiceImpl implements UserService {
 
 
     @Autowired
-    private final UserRepository userRepository;
+    private UserRepository userRepository;
 
-    private final PasswordEncoder passwordEncoder;
 
-    private final AuthenticationManager authenticationManager;
+    private PasswordEncoder passwordEncoder;
+
+    
+    private AuthenticationManager authenticationManager;
     //private final JwtTokenProvider jwtTokenProvider;
 
-    @Autowired
-    public UserServiceImpl(
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            AuthenticationManager authenticationManager
-        //    ,JwtTokenProvider jwtTokenProvider
-    ) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
-   //     this.jwtTokenProvider = jwtTokenProvider;
-    }
 
     @Override
     //@Transactional
     public User register(RegisterDto registerDto) {
-        if (userRepository.existsByUsername(registerDto.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
-        }
+//        if (userRepository.existsByUsername(registerDto.getUsername())) {
+//            throw new IllegalArgumentException("Username already exists");
+//        }
 
-        if (userRepository.existsByEmail(registerDto.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
-        }
+//        if (userRepository.existsByEmail(registerDto.getEmail())) {
+//            throw new IllegalArgumentException("Email already exists");
+//        }
 
         User user = new User();
         user.setUsername(registerDto.getUsername());
         user.setEmail(registerDto.getEmail());
-        user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
+        user.setPassword(
+                //passwordEncoder.encode(
+                registerDto.getPassword()
+        );
         user.setBalance(100.0); // Default starting balance
         user.setUserType(UserType.REGULAR);
         user.addRole("USER");
+
+        System.out.println("CRASHOUTTTT");
 
         return userRepository.save(user);
     }
@@ -97,7 +91,7 @@ public class UserServiceImpl implements UserService
     }
 
     @Override
-    //@Transactional
+    @Transactional
     public User updateBalance(Long userId, Double amount) {
         User user = getUserById(userId);
         user.setBalance(user.getBalance() + amount);

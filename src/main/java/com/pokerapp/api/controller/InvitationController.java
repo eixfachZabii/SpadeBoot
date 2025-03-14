@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -19,16 +19,10 @@ import java.util.List;
 public class InvitationController {
 
     @Autowired
-    private final InvitationService invitationService;
+    private InvitationService invitationService;
 
     @Autowired
-    private final UserService userService;
-
-    @Autowired
-    public InvitationController(InvitationService invitationService, UserService userService) {
-        this.invitationService = invitationService;
-        this.userService = userService;
-    }
+    private UserService userService;
 
     @PostMapping
     public ResponseEntity<InvitationDto> sendInvitation(@Valid @RequestBody InvitationRequestDto requestDto) {

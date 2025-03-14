@@ -13,16 +13,11 @@ import org.springframework.web.bind.annotation.*;
 public class StatisticsController {
 
     @Autowired
-    private final StatisticsService statisticsService;
+    private  StatisticsService statisticsService;
 
     @Autowired
-    private final UserService userService;
+    private  UserService userService;
 
-    @Autowired
-    public StatisticsController(StatisticsService statisticsService, UserService userService) {
-        this.statisticsService = statisticsService;
-        this.userService = userService;
-    }
 
     @GetMapping("/me")
     public ResponseEntity<StatisticsDto> getMyStatistics() {

@@ -2,7 +2,7 @@
 package com.pokerapp.util;
 
 import com.pokerapp.domain.card.Card;
-import com.pokerapp.domain.card.Rank;
+import com.pokerapp.domain.card.c_Rank;
 import com.pokerapp.domain.card.Suit;
 
 import java.util.Comparator;
@@ -25,7 +25,7 @@ public class CardUtils {
         boolean lowStraight = sortedCards.stream()
                 .map(card -> card.getRank())
                 .collect(Collectors.toSet())
-                .containsAll(List.of(Rank.ACE, Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE));
+                .containsAll(List.of(c_Rank.ACE, c_Rank.TWO, c_Rank.THREE, c_Rank.FOUR, c_Rank.FIVE));
 
         if (lowStraight) return true;
 
@@ -45,7 +45,7 @@ public class CardUtils {
         return cards.stream().allMatch(card -> card.getSuit() == firstSuit);
     }
 
-    public static Map<Rank, Long> getRankFrequency(List<Card> cards) {
+    public static Map<c_Rank, Long> getRankFrequency(List<Card> cards) {
         return cards.stream()
                 .collect(Collectors.groupingBy(Card::getRank, Collectors.counting()));
     }

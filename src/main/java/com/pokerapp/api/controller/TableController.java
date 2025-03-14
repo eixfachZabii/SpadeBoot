@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -19,18 +19,11 @@ import java.util.List;
 public class TableController {
 
     @Autowired
-    private final TableService tableService;
+    private  TableService tableService;
 
     @Autowired
-    private final UserService userService;
+    private  UserService userService;
 
-    @Autowired
-    public TableController(TableService tableService,
-            UserService userService
-    ) {
-        this.tableService = tableService;
-        this.userService = userService;
-    }
 
     @PostMapping
     public ResponseEntity<TableDto> createTable(@Valid @RequestBody TableSettingsDto settings) {

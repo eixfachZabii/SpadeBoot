@@ -1,17 +1,22 @@
+# src/main/resources/application.yml
 spring:
   datasource:
-    url: jdbc:h2:mem:pokerdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: password
+    url: "jdbc:mysql://217.154.85.170:3306/spade"
+    username: "spade2"
+    password: "X5a13ST1UW3lEuk452bg"
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       hibernate:
-        format_sql: true
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+        dialect: org.hibernate.dialect.MySQLDialect
+    show-sql: true
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: supErsEcrEtKeyforPokerApp12345
+    expirationMs: 86400000  # 24 hours

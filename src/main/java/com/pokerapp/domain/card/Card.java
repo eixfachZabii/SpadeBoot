@@ -2,7 +2,6 @@
 package com.pokerapp.domain.card;
 
 import jakarta.persistence.*;
-import lombok.Data;
 
 
 //@Data
@@ -21,25 +20,25 @@ public class Card {
         this.suit = suit;
     }
 
-    public Rank getRank() {
-        return rank;
+    public c_Rank getRank() {
+        return cRank;
     }
 
-    public void setRank(Rank rank) {
-        this.rank = rank;
+    public void setRank(c_Rank cRank) {
+        this.cRank = cRank;
     }
 
     @Enumerated(EnumType.STRING)
     private Suit suit;
 
     @Enumerated(EnumType.STRING)
-    private Rank rank;
+    private c_Rank cRank;
 
     private boolean isShowing;
 
     @Override
     public String toString() {
-        return rank + " of " + suit;
+        return cRank + " of " + suit;
     }
 
     public Long getId() {

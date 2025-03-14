@@ -14,12 +14,7 @@ import java.util.List;
 public class ReplayController {
 
     @Autowired
-    private final ReplayService replayService;
-
-    @Autowired
-    public ReplayController(ReplayService replayService) {
-        this.replayService = replayService;
-    }
+    private ReplayService replayService;
 
     @GetMapping("/{id}")
     public ResponseEntity<ReplayDto> getReplay(@PathVariable Long id) {

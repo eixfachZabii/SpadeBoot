@@ -6,27 +6,25 @@ import com.pokerapp.api.dto.response.GameStateDto;
 import com.pokerapp.domain.game.Game;
 import com.pokerapp.service.GameService;
 import com.pokerapp.service.UserService;
+import com.pokerapp.service.impl.GameServiceImpl;
+import com.pokerapp.service.impl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/games")
 public class GameController {
 
     @Autowired
-    private final GameService gameService;
+    private GameServiceImpl gameService;
 
     @Autowired
-    private final UserService userService;
+    private UserServiceImpl userService;
 
-    @Autowired
-    public GameController(GameService gameService, UserService userService) {
-        this.gameService = gameService;
-        this.userService = userService;
-    }
+
 
     @PostMapping("/tables/{tableId}")
     public ResponseEntity<GameStateDto> createGame(@PathVariable Long tableId) {
