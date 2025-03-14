@@ -1,6 +1,7 @@
 // src/main/java/com/pokerapp/domain/statistics/Statistics.java
 package com.pokerapp.domain.statistics;
 
+import com.pokerapp.domain.user.Player;
 import com.pokerapp.domain.user.User;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -15,27 +16,14 @@ public class Statistics {
     private Long id;
 
     @OneToOne
-    private User user;
+    @JoinColumn(name = "player_id")
+    private Player player;
 
     private Integer gamesPlayed = 0;
-
     private Integer gamesWon = 0;
-
     private Double winRate = 0.0;
-
     private Double totalWinnings = 0.0;
 
-    public void updateStats(GameResult gameResult) {
-        Double winnings = gameResult.getWinnings().getOrDefault(user, 0.0);
-        gamesPlayed++;
-
-        if (winnings > 0) {
-            gamesWon++;
-        }
-
-        totalWinnings += winnings;
-        winRate = (double) gamesWon / gamesPlayed;
-    }
 
     public Long getId() {
         return id;
@@ -45,14 +33,14 @@ public class Statistics {
         this.id = id;
     }
 
-    public User getUser() {
-        return user;
+    public Player getPlayer() {
+        return player;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setPlayer(Player player) {
+        this.player = player;
     }
-
+    
     public Integer getGamesPlayed() {
         return gamesPlayed;
     }
