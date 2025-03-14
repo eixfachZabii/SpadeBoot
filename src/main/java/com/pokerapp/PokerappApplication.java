@@ -47,7 +47,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-
 @SpringBootApplication(scanBasePackages = "com.pokerapp")
 @EnableJpaRepositories(basePackages = "com.pokerapp.repository")
 @EntityScan(basePackages = "com.pokerapp.domain")
