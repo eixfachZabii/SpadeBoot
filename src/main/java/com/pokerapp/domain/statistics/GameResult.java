@@ -10,7 +10,7 @@ import java.util.Map;
 
 //@Data
 @Entity
-//@Table(name = "game_results")
+@Table(name = "game_results")
 public class GameResult {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

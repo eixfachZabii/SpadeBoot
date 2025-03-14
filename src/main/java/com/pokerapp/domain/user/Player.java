@@ -9,7 +9,7 @@ import lombok.Data;
 
 //@Data
 @Entity
-//@Table(name = "players")
+@Table(name = "players")
 public class Player extends User {
     private Double chips = 0.0;
 

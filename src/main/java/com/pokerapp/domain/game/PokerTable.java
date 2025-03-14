@@ -14,7 +14,7 @@ import java.util.Set;
 
 //@Data
 @Entity
-//@Table(name = "poker_tables")
+@Table(name = "poker_tables")
 public class PokerTable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

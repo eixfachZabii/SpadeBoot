@@ -11,7 +11,7 @@ import java.util.HashMap;
 
 //@Data
 @Entity
-//@Table(name = "spectators")
+@Table(name = "spectators")
 public class Spectator extends User {
 
     @Column(name = "watching_table_id")

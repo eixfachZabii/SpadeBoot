@@ -10,7 +10,7 @@ import java.util.List;
 
 //@Data
 @Entity
-//@Table(name = "betting_rounds")
+@Table(name = "betting_rounds")
 public class BettingRound {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

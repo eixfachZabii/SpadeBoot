@@ -97,7 +97,10 @@ public class User {
 
     private Double balance = 1000.0; // Default starting balance
 
+
     @Lob
+    @Column(columnDefinition = "MEDIUMBLOB")
+    //@Column(length = 16777215)
     private byte[] avatar;
 
     @ElementCollection(fetch = FetchType.EAGER)

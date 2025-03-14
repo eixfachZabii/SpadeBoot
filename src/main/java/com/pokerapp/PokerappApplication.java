@@ -3,8 +3,7 @@ package com.pokerapp;
 
 import com.pokerapp.api.dto.request.RegisterDto;
 import com.pokerapp.domain.card.Hand;
-import com.pokerapp.domain.game.Game;
-import com.pokerapp.domain.game.GameStatus;
+import com.pokerapp.domain.game.*;
 import com.pokerapp.domain.invitation.Invitation;
 import com.pokerapp.domain.invitation.InvitationStatus;
 import com.pokerapp.domain.statistics.GameResult;
@@ -23,7 +22,6 @@ import com.pokerapp.api.dto.request.RegisterDto;
 import com.pokerapp.domain.card.Hand;
 import com.pokerapp.domain.game.Game;
 import com.pokerapp.domain.game.GameStatus;
-import com.pokerapp.domain.game.Table;
 import com.pokerapp.domain.invitation.Invitation;
 import com.pokerapp.domain.invitation.InvitationStatus;
 import com.pokerapp.domain.statistics.GameResult;
@@ -93,9 +91,9 @@ public void execCodeAfterStartup() {
     
     // Admin user
     RegisterDto adminUser = new RegisterDto();
-    adminUser.setUsername("THOMAS_NEUMANN");
+    adminUser.setUsername("THOMAS_NEUMANN2");
     adminUser.setPassword("ICHBINGDBBOSS");
-    adminUser.setEmail("THOMAS.NEUMANN@TUM.de");
+    adminUser.setEmail("THOMAS.NEUMANN2@TUM.de");
     User admin = userService.register(adminUser);
     admin.addRole("ADMIN");
     userRepository.save(admin);
@@ -131,37 +129,37 @@ public void execCodeAfterStartup() {
         System.out.println("\n🎲 Creating poker tables...");
         
         // Beginner table
-        Table beginnerTable = new Table();
+        PokerTable beginnerTable = new PokerTable();
         beginnerTable.setName("Beginner's Table");
         beginnerTable.setDescription("Low stakes, perfect for beginners");
         beginnerTable.setMaxPlayers(6);
         beginnerTable.setMinBuyIn(10.0);
         beginnerTable.setMaxBuyIn(100.0);
-        beginnerTable.setIsPrivate(false);
+        beginnerTable.setPrivate(false);
         beginnerTable.setOwner(convertToPlayer(players.get(0)));
         tableRepository.save(beginnerTable);
         System.out.println("✅ Created table: " + beginnerTable.getName());
         
         // Pro table
-        Table proTable = new Table();
+        PokerTable proTable = new PokerTable();
         proTable.setName("High Rollers");
         proTable.setDescription("High stakes for experienced players");
         proTable.setMaxPlayers(8);
         proTable.setMinBuyIn(500.0);
         proTable.setMaxBuyIn(5000.0);
-        proTable.setIsPrivate(false);
+        proTable.setPrivate(false);
         proTable.setOwner(convertToPlayer(players.get(1)));
         tableRepository.save(proTable);
         System.out.println("✅ Created table: " + proTable.getName());
         
         // Private table
-        Table privateTable = new Table();
+        PokerTable privateTable = new PokerTable();
         privateTable.setName("VIP Room");
         privateTable.setDescription("Invitation only");
         privateTable.setMaxPlayers(4);
         privateTable.setMinBuyIn(200.0);
         privateTable.setMaxBuyIn(1000.0);
-        privateTable.setIsPrivate(true);
+        privateTable.setPrivate(true);
         privateTable.setOwner(convertToPlayer(players.get(2)));
         tableRepository.save(privateTable);
         System.out.println("✅ Created table: " + privateTable.getName());
@@ -190,7 +188,7 @@ public void execCodeAfterStartup() {
         
         // Create a game for the beginner table
         Game beginnerGame = new Game();
-        beginnerGame.setTable(beginnerTable);
+        beginnerGame.setPokerTable(beginnerTable);
         beginnerGame.setSmallBlind(5.0);
         beginnerGame.setBigBlind(10.0);
         beginnerGame.setStatus(GameStatus.WAITING);
@@ -204,7 +202,7 @@ public void execCodeAfterStartup() {
         
         // Create finished game with results
         Game finishedGame = new Game();
-        finishedGame.setTable(proTable);
+        finishedGame.setPokerTable(proTable);
         finishedGame.setSmallBlind(25.0);
         finishedGame.setBigBlind(50.0);
         finishedGame.setStatus(GameStatus.FINISHED);
