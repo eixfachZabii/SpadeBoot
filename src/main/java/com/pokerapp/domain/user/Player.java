@@ -10,7 +10,15 @@ import lombok.Data;
 //@Data
 @Entity
 @Table(name = "players")
-public class Player extends User {
+public class Player {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     private Double chips = 0.0;
 
     @Enumerated(EnumType.STRING)
@@ -22,31 +30,58 @@ public class Player extends User {
     @Column(name = "current_table_id")
     private Long currentTableId;
 
-    public Player() {
-        super();
-        this.setUserType(UserType.PLAYER);
+    // Methods that delegate to user
+    public String getUsername() {
+        return user.getUsername();
+    }
+    
+    public String getEmail() {
+        return user.getEmail();
+    }
+    
+    public Double getBalance() {
+        return user.getBalance();
+    }
+    
+    public void setBalance(Double balance) {
+        user.setBalance(balance);
+    }
+    
+    public Long getUserId() {
+        return user.getId();
     }
 
+    // Player-specific methods
     public void makeMove(Move move) {
         // Logic for processing a player's move
     }
 
     public void rebuy(Double amount) {
-        if (amount <= this.getBalance()) {
-            this.setChips(this.getChips() + amount);
-            this.setBalance(this.getBalance() - amount);
+        if (amount <= getBalance()) {
+            this.chips += amount;
+            setBalance(getBalance() - amount);
         } else {
             throw new IllegalArgumentException("Insufficient balance for rebuy");
         }
     }
 
     public void leaveTable(Double remainingChips) {
-        // Return chips to balance
-        this.setBalance(this.getBalance() + remainingChips);
-        this.setChips(0.0);
-        this.setCurrentTableId(null);
-        this.setStatus(PlayerStatus.SITTING_OUT);
+        setBalance(getBalance() + remainingChips);
+        this.chips = 0.0;
+        this.currentTableId = null;
+        this.status = PlayerStatus.SITTING_OUT;
     }
+
+    public Player() {
+    }
+
+    public User getUser() {
+        return user;
+    }   
+
+    public void setUser(User user) {
+        this.user = user;
+    }  
 
     public Double getChips() {
         return chips;
