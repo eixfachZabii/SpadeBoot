@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 
 @SpringBootApplication(scanBasePackages = "com.pokerapp")
@@ -21,8 +22,6 @@ public class PokerappApplication {
     @Autowired
     private UserServiceImpl userService;
 
-//    @Autowired
-//    private PasswordEncoder passwordEncoder;
 
     public static void main(String[] args) {
         SpringApplication.run(PokerappApplication.class, args);
@@ -38,9 +37,9 @@ public class PokerappApplication {
 
         RegisterDto Hubsi = new RegisterDto();
 
-        Hubsi.setUsername("ALFONSKEMPERISTTOLL6");
-        Hubsi.setPassword("ALFONSKEMPERISTTOLL6");
-        Hubsi.setEmail("ALFONSKEMPERISTTOLL6@gmail.com");
+        Hubsi.setUsername("THOMAS_NEUMANN");
+        Hubsi.setPassword("ICHBINGDBBOSS");
+        Hubsi.setEmail("THOMAS.NEUMANN@TUM.de");
 
 
 

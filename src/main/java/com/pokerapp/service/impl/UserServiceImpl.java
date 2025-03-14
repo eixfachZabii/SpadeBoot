@@ -27,7 +27,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
 
-
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     
@@ -38,26 +38,22 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User register(RegisterDto registerDto) {
-//        if (userRepository.existsByUsername(registerDto.getUsername())) {
-//            throw new IllegalArgumentException("Username already exists");
-//        }
+        if (userRepository.existsByUsername(registerDto.getUsername())) {
+            throw new IllegalArgumentException("Username already exists");
+        }
 
-//        if (userRepository.existsByEmail(registerDto.getEmail())) {
-//            throw new IllegalArgumentException("Email already exists");
-//        }
+        if (userRepository.existsByEmail(registerDto.getEmail())) {
+            throw new IllegalArgumentException("Email already exists");
+        }
 
         User user = new User();
         user.setUsername(registerDto.getUsername());
         user.setEmail(registerDto.getEmail());
-        user.setPassword(
-                //passwordEncoder.encode(
-                registerDto.getPassword()
-        );
+        user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         user.setBalance(1000.0); // Default starting balance
         user.setUserType(UserType.REGULAR);
 
         user = userRepository.save(user);
-        System.out.println("CRASHOUTTTT");
 
         user.addRole("USER");
 

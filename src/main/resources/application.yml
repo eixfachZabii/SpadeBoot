@@ -1,9 +1,9 @@
 # src/main/resources/application.yml
 spring:
   datasource:
-    url: "jdbc:mysql://217.154.85.170:3306/spade"
-    username: "spade2"
-    password: "X5a13ST1UW3lEuk452bg"
+    url: "jdbc:mysql://217.154.85.170:3306/SpadeDB"
+    username: "spade"
+    password: "v0eJtpsCwHJGq5C4509p"
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
