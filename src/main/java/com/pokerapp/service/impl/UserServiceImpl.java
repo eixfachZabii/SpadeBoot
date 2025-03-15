@@ -1,18 +1,18 @@
-// src/main/java/com/pokerapp/service/impl/UserServiceImpl.java
 package com.pokerapp.service.impl;
 
 import com.pokerapp.api.dto.request.LoginDto;
 import com.pokerapp.api.dto.request.RegisterDto;
+import com.pokerapp.domain.card.Hand;
 import com.pokerapp.domain.user.Player;
+import com.pokerapp.domain.user.PlayerStatus;
 import com.pokerapp.domain.user.User;
 import com.pokerapp.domain.user.UserType;
 import com.pokerapp.exception.NotFoundException;
+import com.pokerapp.repository.PlayerRepository;
 import com.pokerapp.repository.UserRepository;
-//import com.pokerapp.security.JwtTokenProvider;
 import com.pokerapp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,12 +28,12 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     @Autowired
+    private PlayerRepository playerRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
-    
     private AuthenticationManager authenticationManager;
-    //private final JwtTokenProvider jwtTokenProvider;
-
 
     @Override
     @Transactional
@@ -46,15 +46,13 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Email already exists");
         }
 
+        // Create the base User entity
         User user = new User();
         user.setUsername(registerDto.getUsername());
         user.setEmail(registerDto.getEmail());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         user.setBalance(1000.0); // Default starting balance
         user.setUserType(UserType.REGULAR);
-
-        user = userRepository.save(user);
-
         user.addRole("USER");
 
         return userRepository.save(user);
@@ -62,18 +60,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String authenticate(LoginDto loginDto) {
+        // Authentication logic
         return "";
     }
-
-//    @Override
-//    public String authenticate(LoginDto loginDto) {
-//        Authentication authentication = authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword())
-//        );
-//
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
-//        return jwtTokenProvider.generateToken(authentication);
-//    }
 
     @Override
     public User getCurrentUser() {

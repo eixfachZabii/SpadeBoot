@@ -36,11 +36,11 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Override
     public StatisticsDto getUserStatistics(Long userId) {
         // First find the player associated with this user
-        Player player = playerRepository.findById(userId)
+        Player player = playerRepository.findByUserId(userId)
                 .orElseThrow(() -> new NotFoundException("No player found for user with ID: " + userId));
 
         // Then get or create statistics for this player
-        Statistics statistics = statisticsRepository.findByPlayerId(player.getUserId())
+        Statistics statistics = statisticsRepository.findByPlayerId(player.getId())
                 .orElseGet(() -> {
                     Statistics newStats = new Statistics();
                     newStats.setPlayer(player);

@@ -19,17 +19,17 @@ import java.util.List;
 public class TableController {
 
     @Autowired
-    private  TableService tableService;
+    private TableService tableService;
 
     @Autowired
-    private  UserService userService;
-
+    private UserService userService;
 
     @PostMapping
     public ResponseEntity<TableDto> createTable(@Valid @RequestBody TableSettingsDto settings) {
         User currentUser = userService.getCurrentUser();
-        tableService.createTable(settings, currentUser);
-        return ResponseEntity.ok(convertToDto(tableService.createTable(settings, currentUser)));
+        // No change needed here - just pass the User entity
+        PokerTable table = tableService.createTable(settings, currentUser);
+        return ResponseEntity.ok(convertToDto(table));
     }
 
     @GetMapping
@@ -51,24 +51,28 @@ public class TableController {
     public ResponseEntity<TableDto> joinTable(
             @PathVariable Long id,
             @RequestParam Double buyIn) {
+        // Pass the User ID, not the Player ID - the service will handle conversion
         Long userId = userService.getCurrentUser().getId();
         return ResponseEntity.ok(tableService.joinTable(id, userId, buyIn));
     }
 
     @PostMapping("/{id}/spectate")
     public ResponseEntity<TableDto> spectateTable(@PathVariable Long id) {
+        // Pass the User ID, not the Spectator ID
         Long userId = userService.getCurrentUser().getId();
         return ResponseEntity.ok(tableService.joinTableAsSpectator(id, userId));
     }
 
     @PostMapping("/{id}/leave")
     public ResponseEntity<TableDto> leaveTable(@PathVariable Long id) {
+        // Pass the User ID, not the Player ID
         Long userId = userService.getCurrentUser().getId();
         return ResponseEntity.ok(tableService.leaveTable(id, userId));
     }
 
     @PostMapping("/{id}/stop-spectating")
     public ResponseEntity<TableDto> stopSpectating(@PathVariable Long id) {
+        // Pass the User ID, not the Spectator ID
         Long userId = userService.getCurrentUser().getId();
         return ResponseEntity.ok(tableService.removeSpectator(id, userId));
     }

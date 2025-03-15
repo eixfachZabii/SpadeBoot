@@ -13,20 +13,21 @@ import org.springframework.web.bind.annotation.*;
 public class StatisticsController {
 
     @Autowired
-    private  StatisticsService statisticsService;
+    private StatisticsService statisticsService;
 
     @Autowired
-    private  UserService userService;
-
+    private UserService userService;
 
     @GetMapping("/me")
     public ResponseEntity<StatisticsDto> getMyStatistics() {
+        // Pass the user ID directly - StatisticsService will handle the conversion to Player
         Long userId = userService.getCurrentUser().getId();
         return ResponseEntity.ok(statisticsService.getUserStatistics(userId));
     }
 
     @GetMapping("/users/{userId}")
     public ResponseEntity<StatisticsDto> getUserStatistics(@PathVariable Long userId) {
+        // This is already correct, as it passes the user ID to the service
         return ResponseEntity.ok(statisticsService.getUserStatistics(userId));
     }
 }

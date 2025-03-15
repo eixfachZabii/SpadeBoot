@@ -4,6 +4,7 @@ package com.pokerapp.api.controller;
 import com.pokerapp.api.dto.request.MoveDto;
 import com.pokerapp.api.dto.response.GameStateDto;
 import com.pokerapp.domain.game.Game;
+import com.pokerapp.repository.PlayerRepository;
 import com.pokerapp.service.GameService;
 import com.pokerapp.service.UserService;
 import com.pokerapp.service.impl.GameServiceImpl;
@@ -24,7 +25,8 @@ public class GameController {
     @Autowired
     private UserServiceImpl userService;
 
-
+    @Autowired
+    private PlayerRepository playerRepository;
 
     @PostMapping("/tables/{tableId}")
     public ResponseEntity<GameStateDto> createGame(@PathVariable Long tableId) {
@@ -51,8 +53,11 @@ public class GameController {
             @PathVariable Long gameId,
             @Valid @RequestBody MoveDto moveDto) {
 
-        Long playerId = userService.getCurrentUser().getId();
-        GameStateDto gameState = gameService.makeMove(gameId, playerId, moveDto);
+        // Get the current user ID from the security context
+        Long userId = userService.getCurrentUser().getId();
+
+        // Now pass the user ID to the service, not the player ID
+        GameStateDto gameState = gameService.makeMove(gameId, userId, moveDto);
         return ResponseEntity.ok(gameState);
     }
 }

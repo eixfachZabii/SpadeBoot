@@ -21,6 +21,7 @@ import com.pokerapp.repository.*;
 import com.pokerapp.service.GameService;
 import com.pokerapp.service.ReplayService;
 import com.pokerapp.service.StatisticsService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -63,6 +64,9 @@ public class GameServiceImpl implements GameService {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
+    private final UserServiceImpl userService;
+
+    @Autowired
     public GameServiceImpl(
             GameRepository gameRepository,
             TableRepository tableRepository,
@@ -70,7 +74,7 @@ public class GameServiceImpl implements GameService {
             ReplayRepository replayRepository,
             ReplayService replayService, StatisticsRepository statisticsRepository, StatisticsService statisticsService,
             HandEvaluator handEvaluator,
-            SimpMessagingTemplate messagingTemplate) {
+            SimpMessagingTemplate messagingTemplate, UserServiceImpl userService) {
         this.gameRepository = gameRepository;
         this.tableRepository = tableRepository;
         this.playerRepository = playerRepository;
@@ -80,10 +84,11 @@ public class GameServiceImpl implements GameService {
         this.statisticsService = statisticsService;
         this.handEvaluator = handEvaluator;
         this.messagingTemplate = messagingTemplate;
+        this.userService = userService;
     }
 
     @Override
-    //@Transactional
+    @Transactional
     public Game createGame(Long tableId) {
         PokerTable pokerTable = tableRepository.findById(tableId)
                 .orElseThrow(() -> new NotFoundException("Table not found"));
@@ -95,6 +100,10 @@ public class GameServiceImpl implements GameService {
         game.setStatus(GameStatus.WAITING);
 
         game = gameRepository.save(game);
+
+        // Update the table's current game - make sure to properly set both sides
+        pokerTable.setCurrentGame(game);
+        tableRepository.save(pokerTable);
 
         // Create and associate replay system
         replayService.createReplay(game);
@@ -170,14 +179,16 @@ public class GameServiceImpl implements GameService {
         return gameStateDto;
     }
 
+
     @Override
-    //@Transactional
-    public GameStateDto makeMove(Long gameId, Long playerId, MoveDto moveDto) {
+    @Transactional
+    public GameStateDto makeMove(Long gameId, Long userId, MoveDto moveDto) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("Game not found"));
 
-        Player player = playerRepository.findById(playerId)
-                .orElseThrow(() -> new NotFoundException("Player not found"));
+        // Find player by user ID
+        Player player = playerRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Player not found for user ID: " + userId));
 
         if (game.getStatus() != GameStatus.IN_PROGRESS) {
             throw new IllegalStateException("Game is not in progress");
@@ -421,7 +432,8 @@ public class GameServiceImpl implements GameService {
 
     private PlayerStateDto convertToPlayerStateDto(Player player, Game game) {
         PlayerStateDto dto = new PlayerStateDto();
-        dto.setId(player.getUserId());
+        dto.setId(player.getId());        // Player ID
+        dto.setUserId(player.getUserId()); // User ID
         dto.setUsername(player.getUsername());
         dto.setChips(player.getChips());
         dto.setStatus(player.getStatus().toString());
@@ -432,7 +444,9 @@ public class GameServiceImpl implements GameService {
                         game.getCurrentRound().getCurrentBettingRound() != null &&
                         game.getCurrentRound().getCurrentBettingRound().getStage() == BettingStage.RIVER);
 
-        if (player.getHand() != null && (showCards || player.getUserId().equals(getCurrentUserId()))) {
+        // Compare player ID with current player ID, not user ID
+        Long currentPlayerId = getCurrentPlayerId();
+        if (player.getHand() != null && (showCards || player.getId().equals(currentPlayerId))) {
             List<CardDto> cards = player.getHand().getCards().stream()
                     .map(this::convertToCardDto)
                     .collect(Collectors.toList());
@@ -445,5 +459,12 @@ public class GameServiceImpl implements GameService {
     // In a real application, this would come from the security context
     private Long getCurrentUserId() {
         return 1L; // Placeholder
+    }
+
+    private Long getCurrentPlayerId() {
+        User currentUser = userService.getCurrentUser();
+        return playerRepository.findByUserId(currentUser.getId())
+                .map(Player::getId)
+                .orElse(null);
     }
 }

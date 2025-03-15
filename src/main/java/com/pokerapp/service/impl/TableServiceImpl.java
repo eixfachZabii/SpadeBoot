@@ -1,4 +1,3 @@
-// src/main/java/com/pokerapp/service/impl/TableServiceImpl.java
 package com.pokerapp.service.impl;
 
 import com.pokerapp.api.dto.request.TableSettingsDto;
@@ -11,11 +10,12 @@ import com.pokerapp.exception.NotFoundException;
 import com.pokerapp.repository.PlayerRepository;
 import com.pokerapp.repository.SpectatorRepository;
 import com.pokerapp.repository.TableRepository;
+import com.pokerapp.repository.UserRepository;
 import com.pokerapp.service.TableService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
 
-//import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,28 +23,23 @@ import java.util.stream.Collectors;
 public class TableServiceImpl implements TableService {
 
     @Autowired
-    private final TableRepository tableRepository;
+    private TableRepository tableRepository;
 
     @Autowired
-    private final PlayerRepository playerRepository;
+    private PlayerRepository playerRepository;
 
     @Autowired
-    private final SpectatorRepository spectatorRepository;
+    private SpectatorRepository spectatorRepository;
 
     @Autowired
-    public TableServiceImpl(
-            TableRepository tableRepository,
-            PlayerRepository playerRepository,
-            SpectatorRepository spectatorRepository) {
-        this.tableRepository = tableRepository;
-        this.playerRepository = playerRepository;
-        this.spectatorRepository = spectatorRepository;
-    }
+    private UserRepository userRepository;
 
     @Override
-    //@Transactional
+    @Transactional
     public PokerTable createTable(TableSettingsDto settings, User owner) {
-        Player ownerAsPlayer = playerRepository.findById(owner.getId()).orElseThrow();
+        // Find the player associated with this user
+        Player ownerAsPlayer = playerRepository.findByUserId(owner.getId())
+                .orElseThrow(() -> new NotFoundException("Player not found for user: " + owner.getUsername()));
 
         PokerTable pokerTable = new PokerTable();
         pokerTable.setName(settings.getName());
@@ -80,11 +75,13 @@ public class TableServiceImpl implements TableService {
     }
 
     @Override
-    //@Transactional
+    @Transactional
     public TableDto joinTable(Long tableId, Long userId, Double buyIn) {
         PokerTable pokerTable = getTableById(tableId);
-        Player player = playerRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Player not found"));
+
+        // Find player by user ID, not by player ID
+        Player player = playerRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Player not found for user ID: " + userId));
 
         if (player.getCurrentTableId() != null) {
             throw new IllegalStateException("Player is already at a table");
@@ -102,11 +99,20 @@ public class TableServiceImpl implements TableService {
     }
 
     @Override
-    //@Transactional
+    @Transactional
     public TableDto joinTableAsSpectator(Long tableId, Long userId) {
         PokerTable pokerTable = getTableById(tableId);
-        Spectator spectator = spectatorRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Spectator not found"));
+
+        // Find spectator by user ID or create one if it doesn't exist
+        Spectator spectator = spectatorRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new NotFoundException("User not found with ID: " + userId));
+
+                    Spectator newSpectator = new Spectator();
+                    newSpectator.setUser(user);
+                    return spectatorRepository.save(newSpectator);
+                });
 
         if (spectator.getWatchingTableId() != null) {
             throw new IllegalStateException("Spectator is already watching a table");
@@ -124,11 +130,13 @@ public class TableServiceImpl implements TableService {
     }
 
     @Override
-   // @Transactional
+    @Transactional
     public TableDto leaveTable(Long tableId, Long userId) {
         PokerTable pokerTable = getTableById(tableId);
-        Player player = playerRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Player not found"));
+
+        // Find player by user ID, not by player ID
+        Player player = playerRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Player not found for user ID: " + userId));
 
         boolean removed = pokerTable.removePlayer(player);
         if (!removed) {
@@ -142,11 +150,13 @@ public class TableServiceImpl implements TableService {
     }
 
     @Override
-    //@Transactional
+    @Transactional
     public TableDto removeSpectator(Long tableId, Long userId) {
         PokerTable pokerTable = getTableById(tableId);
-        Spectator spectator = spectatorRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Spectator not found"));
+
+        // Find spectator by user ID, not by spectator ID
+        Spectator spectator = spectatorRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Spectator not found for user ID: " + userId));
 
         boolean removed = pokerTable.removeSpectator(spectator);
         if (!removed) {

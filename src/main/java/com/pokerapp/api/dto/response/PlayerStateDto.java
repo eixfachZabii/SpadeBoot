@@ -6,7 +6,8 @@ import java.util.List;
 
 //@Data
 public class PlayerStateDto {
-    private Long id;
+    private Long id;          // This should be the Player ID for consistency
+    private Long userId;      // Add this field to explicitly include User ID
     private String username;
     private Double chips;
     private String status;
@@ -59,5 +60,13 @@ public class PlayerStateDto {
 
     public void setTurn(boolean turn) {
         isTurn = turn;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }

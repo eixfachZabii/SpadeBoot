@@ -9,6 +9,6 @@ import java.util.Optional;
 
 public interface StatisticsRepository extends JpaRepository<Statistics, Long> {
 
-    @Query("SELECT s FROM Statistics s WHERE s.player.id  = ?1")
+    @Query("SELECT s FROM Statistics s WHERE s.player.id = ?1")
     Optional<Statistics> findByPlayerId(Long playerId);
 }

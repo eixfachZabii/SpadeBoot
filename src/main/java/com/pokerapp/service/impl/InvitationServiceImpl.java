@@ -11,6 +11,7 @@ import com.pokerapp.repository.InvitationRepository;
 import com.pokerapp.repository.UserRepository;
 import com.pokerapp.service.InvitationService;
 import com.pokerapp.service.TableService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,14 +42,16 @@ public class InvitationServiceImpl implements InvitationService {
     }
 
     @Override
-    //@Transactional
+    @Transactional
     public Invitation createInvitation(InvitationRequestDto requestDto, User sender) {
+        // Verify the recipient exists
         User recipient = userRepository.findById(requestDto.getRecipientId())
                 .orElseThrow(() -> new NotFoundException("Recipient not found"));
 
         // Verify the table exists
         tableService.getTableById(requestDto.getTableId());
 
+        // Create and save the invitation
         Invitation invitation = new Invitation();
         invitation.setSender(sender);
         invitation.setRecipient(recipient);

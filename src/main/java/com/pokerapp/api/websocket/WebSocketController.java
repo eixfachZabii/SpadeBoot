@@ -6,6 +6,7 @@ import com.pokerapp.api.dto.request.ChatMessageDto;
 import com.pokerapp.api.dto.request.MoveDto;
 import com.pokerapp.api.dto.response.GameStateDto;
 import com.pokerapp.api.dto.response.MessageDto;
+import com.pokerapp.repository.PlayerRepository;
 import com.pokerapp.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -23,6 +24,9 @@ public class WebSocketController {
     private final GameService gameService;
 
     @Autowired
+    private PlayerRepository playerRepository; // Add this
+
+    @Autowired
     public WebSocketController(GameService gameService) {
         this.gameService = gameService;
     }
@@ -35,9 +39,11 @@ public class WebSocketController {
             SimpMessageHeaderAccessor headerAccessor) {
 
         Principal principal = headerAccessor.getUser();
-        Long playerId = Long.parseLong(principal.getName());
+        // This assumes the principal name is the user ID - adjust if different
+        Long userId = Long.parseLong(principal.getName());
 
-        return gameService.makeMove(gameId, playerId, moveDto);
+        // Pass the user ID to the service, not the player ID
+        return gameService.makeMove(gameId, userId, moveDto);
     }
 
     @MessageMapping("/games/{gameId}/chat")
@@ -48,13 +54,14 @@ public class WebSocketController {
             SimpMessageHeaderAccessor headerAccessor) {
 
         Principal principal = headerAccessor.getUser();
-        Long playerId = Long.parseLong(principal.getName());
+        // This assumes the principal name is the user ID - adjust if different
+        Long userId = Long.parseLong(principal.getName());
 
         // Create and return a message DTO
         MessageDto messageDto = new MessageDto();
         messageDto.setType("CHAT");
         messageDto.setContent(chatMessageDto.getMessage());
-        messageDto.setPlayerId(playerId);
+        messageDto.setPlayerId(userId); // This should be user ID
         messageDto.setTimestamp(String.valueOf(System.currentTimeMillis()));
 
         return messageDto;
