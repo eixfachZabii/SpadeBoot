@@ -5,7 +5,7 @@ import lombok.Data;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-//@Data
+@Data
 public class InvitationRequestDto {
     @NotNull
     private Long recipientId;

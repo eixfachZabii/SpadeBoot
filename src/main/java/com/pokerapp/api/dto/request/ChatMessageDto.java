@@ -3,7 +3,7 @@ package com.pokerapp.api.dto.request;
 
 import lombok.Data;
 
-//@Data
+@Data
 public class ChatMessageDto {
     private String message;
 

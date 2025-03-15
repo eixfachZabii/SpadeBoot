@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
-//@Data
+@Data
 public class TableSettingsDto {
     @NotBlank
     @Size(min = 3, max = 50)

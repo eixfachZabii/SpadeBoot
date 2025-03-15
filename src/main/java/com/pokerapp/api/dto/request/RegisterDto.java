@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-//@Data
+@Data
 public class RegisterDto {
     @NotBlank
     @Size(min = 3, max = 50)

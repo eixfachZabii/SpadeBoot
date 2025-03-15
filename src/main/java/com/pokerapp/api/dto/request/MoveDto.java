@@ -4,7 +4,7 @@ package com.pokerapp.api.dto.request;
 import lombok.Data;
 import jakarta.validation.constraints.NotNull;
 
-//@Data
+@Data
 public class MoveDto {
     @NotNull
     private String type; // "CHECK", "CALL", "RAISE", "FOLD", "ALL_IN"

@@ -4,7 +4,7 @@ package com.pokerapp.api.dto.request;
 import lombok.Data;
 import jakarta.validation.constraints.NotBlank;
 
-//@Data
+@Data
 public class LoginDto {
     @NotBlank
     private String username;
