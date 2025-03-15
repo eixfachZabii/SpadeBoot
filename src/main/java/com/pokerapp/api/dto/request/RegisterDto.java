@@ -1,12 +1,14 @@
 // src/main/java/com/pokerapp/api/dto/request/RegisterDto.java
 package com.pokerapp.api.dto.request;
 
-import lombok.Data;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class RegisterDto {
     @NotBlank
     @Size(min = 3, max = 50)

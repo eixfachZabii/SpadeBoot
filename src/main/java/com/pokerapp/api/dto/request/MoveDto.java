@@ -1,10 +1,12 @@
 // src/main/java/com/pokerapp/api/dto/request/MoveDto.java
 package com.pokerapp.api.dto.request;
 
-import lombok.Data;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class MoveDto {
     @NotNull
     private String type; // "CHECK", "CALL", "RAISE", "FOLD", "ALL_IN"

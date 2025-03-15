@@ -1,9 +1,11 @@
 // src/main/java/com/pokerapp/api/dto/response/MessageDto.java
 package com.pokerapp.api.dto.response;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class MessageDto {
     private String type; // INFO, ERROR, NOTIFICATION
     private String content;

@@ -2,13 +2,15 @@
 package com.pokerapp.domain.game;
 
 import com.pokerapp.domain.card.Card;
-import lombok.Data;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.persistence.Table;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "game_rounds")
 public class GameRound {

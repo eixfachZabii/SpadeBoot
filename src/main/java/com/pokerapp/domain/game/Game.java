@@ -1,26 +1,18 @@
 // src/main/java/com/pokerapp/domain/game/Game.java
 package com.pokerapp.domain.game;
 
-import com.pokerapp.domain.card.Card;
 import com.pokerapp.domain.card.Deck;
 import com.pokerapp.domain.card.Hand;
-import com.pokerapp.domain.poker.HandEvaluator;
-import com.pokerapp.domain.poker.HandRank;
 import com.pokerapp.domain.user.Player;
-import com.pokerapp.domain.user.PlayerStatus;
-import com.pokerapp.service.impl.HandEvaluationServiceImpl;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
-import jakarta.persistence.Table;
-import org.springframework.beans.factory.annotation.Autowired;
-
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "games")
 public class Game {

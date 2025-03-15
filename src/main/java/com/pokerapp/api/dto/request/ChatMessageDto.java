@@ -1,9 +1,11 @@
 // src/main/java/com/pokerapp/api/dto/request/ChatMessageDto.java
 package com.pokerapp.api.dto.request;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class ChatMessageDto {
     private String message;
 

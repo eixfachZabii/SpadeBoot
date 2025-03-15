@@ -1,10 +1,13 @@
 // src/main/java/com/pokerapp/api/dto/response/ReplayDto.java
 package com.pokerapp.api.dto.response;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 public class ReplayDto {
     private Long id;
     private Long gameId;

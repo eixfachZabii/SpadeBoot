@@ -2,10 +2,12 @@
 package com.pokerapp.domain.card;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "cards")
 public class Card {

@@ -4,11 +4,14 @@ package com.pokerapp.domain.statistics;
 import com.pokerapp.domain.game.Game;
 import com.pokerapp.domain.user.Player;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.HashMap;
 import java.util.Map;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "game_results")
 public class GameResult {

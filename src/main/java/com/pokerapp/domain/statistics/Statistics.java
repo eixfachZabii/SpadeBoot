@@ -2,12 +2,13 @@
 package com.pokerapp.domain.statistics;
 
 import com.pokerapp.domain.user.Player;
-import com.pokerapp.domain.user.User;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "statistics",
         uniqueConstraints = {

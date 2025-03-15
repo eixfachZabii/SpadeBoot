@@ -3,10 +3,11 @@ package com.pokerapp.domain.game;
 
 import com.pokerapp.domain.user.Player;
 import jakarta.persistence.*;
-import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "moves")
 public class Move {

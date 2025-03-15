@@ -2,13 +2,15 @@
 package com.pokerapp.domain.card;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "decks")
 public class Deck {

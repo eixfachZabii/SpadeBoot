@@ -1,10 +1,12 @@
 // src/main/java/com/pokerapp/api/dto/request/LoginDto.java
 package com.pokerapp.api.dto.request;
 
-import lombok.Data;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class LoginDto {
     @NotBlank
     private String username;

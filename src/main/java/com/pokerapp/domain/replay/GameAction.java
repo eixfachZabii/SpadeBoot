@@ -5,10 +5,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.pokerapp.domain.game.Move;
 import com.pokerapp.domain.user.Player;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "game_actions")
 public class GameAction {

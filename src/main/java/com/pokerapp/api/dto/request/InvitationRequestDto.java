@@ -1,11 +1,13 @@
 // src/main/java/com/pokerapp/api/dto/request/InvitationRequestDto.java
 package com.pokerapp.api.dto.request;
 
-import lombok.Data;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class InvitationRequestDto {
     @NotNull
     private Long recipientId;

@@ -1,9 +1,11 @@
 // src/main/java/com/pokerapp/api/dto/response/CardDto.java
 package com.pokerapp.api.dto.response;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class CardDto {
     private String suit;
     private String rank;

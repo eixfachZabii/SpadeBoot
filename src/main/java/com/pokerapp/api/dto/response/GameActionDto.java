@@ -1,9 +1,11 @@
 // src/main/java/com/pokerapp/api/dto/response/GameActionDto.java
 package com.pokerapp.api.dto.response;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class GameActionDto {
     private Long id;
     private Long playerId;

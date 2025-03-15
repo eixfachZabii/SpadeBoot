@@ -1,13 +1,15 @@
 // src/main/java/com/pokerapp/domain/user/Player.java
 package com.pokerapp.domain.user;
 
-import com.pokerapp.domain.game.Move;
 import com.pokerapp.domain.card.Hand;
+import com.pokerapp.domain.game.Move;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "players")
 public class Player {

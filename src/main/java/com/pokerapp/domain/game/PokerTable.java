@@ -2,19 +2,17 @@
 package com.pokerapp.domain.game;
 
 import com.pokerapp.domain.user.Player;
-import com.pokerapp.domain.user.Spectator;
 import com.pokerapp.domain.user.PlayerStatus;
+import com.pokerapp.domain.user.Spectator;
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "poker_tables")
 public class PokerTable {
