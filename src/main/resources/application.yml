@@ -1,4 +1,3 @@
-# src/main/resources/application.yml
 spring:
   datasource:
     url: "jdbc:mysql://217.154.85.170:3306/SpadeDB"
@@ -20,3 +19,7 @@ app:
   jwt:
     secret: supErsEcrEtKeyforPokerApp12345
     expirationMs: 86400000  # 24 hours
+
+logging:
+  level:
+    root: OFF
