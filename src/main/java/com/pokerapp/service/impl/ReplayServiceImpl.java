@@ -8,6 +8,7 @@ import com.pokerapp.domain.replay.Replay;
 import com.pokerapp.exception.NotFoundException;
 import com.pokerapp.repository.ReplayRepository;
 import com.pokerapp.service.ReplayService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +47,7 @@ public class ReplayServiceImpl implements ReplayService {
     public List<ReplayDto> getReplaysByUser(Long userId) {
         // Implementation would depend on how you store the relationship between replays and users
         // This is a simplified example
+        //TODO
         return replayRepository.findAll().stream()
                 .filter(r -> r.getGame().getPokerTable().getPlayers().stream()
                         .anyMatch(p -> p.getUserId().equals(userId)))
@@ -61,7 +63,7 @@ public class ReplayServiceImpl implements ReplayService {
     }
 
     @Override
-    //@Transactional
+    @Transactional
     public void completeReplay(Long gameId) {
         Replay replay = replayRepository.findByGameId(gameId)
                 .orElseThrow(() -> new NotFoundException("Replay not found for game"));

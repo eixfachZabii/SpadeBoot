@@ -17,6 +17,8 @@
 //
 //import java.io.IOException;
 //
+
+//TODO: ALLES MIT SECURITY
 //@Component
 //public class JwtAuthenticationFilter extends OncePerRequestFilter {
 //

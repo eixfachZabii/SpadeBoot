@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class HandEvaluator {
 
-    //TODO: ALLES CHECKEN
+    //TODO: ALLES CHECKEN ODER SELBER MACHEN
 
     public HandRank evaluateHand(List<Card> hand, List<Card> communityCards) {
         List<Card> allCards = new ArrayList<>(hand);
@@ -75,6 +75,7 @@ public class HandEvaluator {
     private boolean isRoyalFlush(List<Card> cards) {
         return isStraightFlush(cards) && cards.stream()
                 .anyMatch(card -> card.getCRank() == c_Rank.ACE);
+        //Kriminell falsch TODO: lower straight flush von A bis 5 z.b.
     }
 
     private boolean isStraightFlush(List<Card> cards) {

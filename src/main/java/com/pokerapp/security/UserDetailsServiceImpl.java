@@ -13,6 +13,10 @@
 //import java.util.Set;
 //import java.util.stream.Collectors;
 //
+
+
+
+//TODO: ALLES MIT SECURITY
 //@Service
 //public class UserDetailsServiceImpl implements UserDetailsService {
 //

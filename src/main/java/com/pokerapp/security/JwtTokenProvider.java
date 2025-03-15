@@ -15,6 +15,10 @@
 //import java.util.Date;
 //import java.util.function.Function;
 //
+
+
+
+//TODO: ALLES MIT SECURITY
 //@Component
 //public class JwtTokenProvider {
 //

@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class StatisticsServiceImpl implements StatisticsService {
@@ -40,12 +41,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                 .orElseThrow(() -> new NotFoundException("No player found for user with ID: " + userId));
 
         // Then get or create statistics for this player
-        Statistics statistics = statisticsRepository.findByPlayerId(player.getId())
-                .orElseGet(() -> {
-                    Statistics newStats = new Statistics();
-                    newStats.setPlayer(player);
-                    return statisticsRepository.save(newStats);
-                });
+        Statistics statistics = findOrCreateStatistics(player);
 
         return convertToDto(statistics);
     }
@@ -63,22 +59,36 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Transactional
     public void updateUserStatistics(GameResult gameResult) {
         gameResult.getWinnings().forEach((player, amount) -> {
-            Statistics statistics = statisticsRepository.findByPlayerId(player.getUserId())
-                    .orElseGet(() -> {
-                        Statistics newStats = new Statistics();
-                        newStats.setPlayer(player);
-                        return newStats;
-                    });
+            // Find or create statistics for the player
+            Statistics statistics = findOrCreateStatistics(player);
 
+            // Update the statistics
             statistics.updateStats(gameResult);
             statisticsRepository.save(statistics);
         });
     }
 
+    /**
+     * Find existing statistics or create a new one if not exists
+     */
+    private Statistics findOrCreateStatistics(Player player) {
+        // First try to find by playerId
+        Optional<Statistics> existingStats = statisticsRepository.findByPlayerId(player.getId());
+
+        // If not found, create a new one
+        if (existingStats.isEmpty()) {
+            Statistics newStats = new Statistics();
+            newStats.setPlayer(player);
+            return statisticsRepository.save(newStats);
+        }
+
+        return existingStats.get();
+    }
+
     private StatisticsDto convertToDto(Statistics statistics) {
         Player player = statistics.getPlayer();
         User user = player.getUser();
-        
+
         StatisticsDto dto = new StatisticsDto();
         dto.setUserId(user.getId());
         dto.setUsername(user.getUsername());

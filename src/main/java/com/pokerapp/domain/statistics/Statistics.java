@@ -9,7 +9,10 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "statistics")
+@Table(name = "statistics",
+        uniqueConstraints = {
+
+        })
 public class Statistics {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,6 +37,6 @@ public class Statistics {
         }
 
         totalWinnings += winnings;
-        winRate = (double) gamesWon / gamesPlayed;
+        winRate = gamesPlayed > 0 ? (double) gamesWon / gamesPlayed : 0.0;
     }
 }
