@@ -6,8 +6,8 @@ import com.pokerapp.api.dto.request.TableSettingsDto;
 import com.pokerapp.api.dto.response.GameStateDto;
 import com.pokerapp.api.dto.response.TableDto;
 import com.pokerapp.domain.game.Game;
+import com.pokerapp.domain.game.PokerTable;
 import com.pokerapp.domain.user.Player;
-import com.pokerapp.domain.user.Spectator;
 import com.pokerapp.domain.user.User;
 import com.pokerapp.service.GameService;
 import com.pokerapp.service.InvitationService;
@@ -51,7 +51,6 @@ public class PokerappApplication {
 
     @Autowired
     private UserRoleService userRoleService;
-
 
     public static void main(String[] args) {
         SpringApplication.run(PokerappApplication.class, args);
@@ -198,11 +197,15 @@ public class PokerappApplication {
         gameService.startGame(beginnerGame.getId());
         logInfo("✅ Created and started game for " + tables.get(0).getName());
 
-        // Get the game state
-        GameStateDto beginnerGameState = gameService.getGameState(beginnerGame.getId());
-        logInfo("   Game state: " + beginnerGameState.getStatus() +
-                " | Pot: $" + beginnerGameState.getPot() +
-                " | Players: " + beginnerGameState.getPlayers().size());
+        // Get the game state - wrap in try-catch to handle potential exceptions
+        try {
+            GameStateDto beginnerGameState = gameService.getGameState(beginnerGame.getId());
+            logInfo("   Game state: " + beginnerGameState.getStatus() +
+                    " | Pot: $" + beginnerGameState.getPot() +
+                    " | Players: " + beginnerGameState.getPlayers().size());
+        } catch (Exception e) {
+            logError("   Error getting game state: " + e.getMessage());
+        }
 
         // Create and end game for pro table
         Game proGame = gameService.createGame(tables.get(1).getId());
@@ -223,6 +226,24 @@ public class PokerappApplication {
         // Have spectator watch a table
         tableService.joinTableAsSpectator(tables.get(0).getId(), spectatorUser.getId());
         logInfo("✅ Spectator " + spectatorUser.getUsername() + " is watching " + tables.get(0).getName());
+    }
+
+    /**
+     * Converts a PokerTable entity to a TableDto
+     */
+    private TableDto convertToTableDto(PokerTable pokerTable) {
+        TableDto dto = new TableDto();
+        dto.setId(pokerTable.getId());
+        dto.setName(pokerTable.getName());
+        dto.setDescription(pokerTable.getDescription());
+        dto.setMaxPlayers(pokerTable.getMaxPlayers());
+        dto.setCurrentPlayers(pokerTable.getPlayers().size());
+        dto.setMinBuyIn(pokerTable.getMinBuyIn());
+        dto.setMaxBuyIn(pokerTable.getMaxBuyIn());
+        dto.setPrivate(pokerTable.getPrivate());
+        dto.setOwnerId(pokerTable.getOwner().getUserId());
+        dto.setHasActiveGame(pokerTable.getCurrentGame() != null);
+        return dto;
     }
 
     /**

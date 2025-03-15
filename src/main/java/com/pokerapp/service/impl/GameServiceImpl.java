@@ -194,6 +194,7 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
+    @Transactional // Add @Transactional to ensure the session is open when accessing lazy collections
     public GameStateDto getGameState(Long gameId) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
@@ -539,7 +540,7 @@ public class GameServiceImpl implements GameService {
             return false;
         }
 
-        // Check if all active players have the same amount committed 
+        // Check if all active players have the same amount committed
         // or are all-in (provided at least one player has acted)
         if (!bettingRound.getMoves().isEmpty()) {
             Double highestBet = bettingRound.getCurrentBet();
@@ -857,7 +858,7 @@ public class GameServiceImpl implements GameService {
             return game;
         }
 
-        // Determine winners 
+        // Determine winners
         Map<Player, Double> winnings = determineWinners(game);
 
         // Distribute winnings

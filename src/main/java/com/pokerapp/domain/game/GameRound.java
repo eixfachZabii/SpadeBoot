@@ -20,7 +20,7 @@ public class GameRound {
 
     private Double pot = 0.0;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Card> communityCards = new ArrayList<>();
 
     @OneToMany(mappedBy = "gameRound", cascade = CascadeType.ALL)
