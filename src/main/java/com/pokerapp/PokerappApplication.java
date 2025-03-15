@@ -349,6 +349,7 @@ public class PokerappApplication {
 
     /**
      * Run a game to completion, letting each player take their turn
+     * Fixed version that correctly identifies whose turn it is
      */
     private void runGameToCompletion(Long gameId, List<User> users) {
         // Safety limits
@@ -361,18 +362,44 @@ public class PokerappApplication {
 
             // Continue until game is finished or we hit the move limit
             while (!gameState.getStatus().equals(GameStatus.FINISHED.toString()) && moveCount < maxMoves) {
-                // Get the current player ID
-                Long currentPlayerId = gameState.getCurrentPlayerId();
-                if (currentPlayerId == null) {
-                    logInfo("No current player found, game might be between stages.");
-                    break;
+                // Find the player whose turn it is by looking for isTurn flag
+                PlayerStateDto currentPlayerState = null;
+                for (PlayerStateDto player : gameState.getPlayers()) {
+                    if (player.isTurn()) {
+                        currentPlayerState = player;
+                        break;
+                    }
                 }
 
-                // Find the user corresponding to the current player
-                User currentUser = findUserForPlayer(currentPlayerId, gameState, users);
+                if (currentPlayerState == null) {
+                    logInfo("No player found with active turn. Refreshing game state...");
+                    // The game might be between betting rounds or stages, refresh the state
+                    gameState = gameService.getGameState(gameId);
+                    Thread.sleep(200); // Short delay before retry
+                    continue;
+                }
+
+                // Find the user for this player using the userId field
+                User currentUser = null;
+                if (currentPlayerState.getUserId() != null) {
+                    try {
+                        currentUser = userService.getUserById(currentPlayerState.getUserId());
+                    } catch (Exception e) {
+                        // Fall back to matching by username
+                        for (User user : users) {
+                            if (user.getUsername().equals(currentPlayerState.getUsername())) {
+                                currentUser = user;
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 if (currentUser == null) {
-                    logInfo("⚠️ Couldn't find user for player ID: " + currentPlayerId);
-                    break;
+                    logInfo("⚠️ Couldn't find user for current player: " + currentPlayerState.getUsername());
+                    gameState = gameService.getGameState(gameId);
+                    Thread.sleep(200); // Short delay before retry
+                    continue;
                 }
 
                 // Set the security context to the current player
@@ -382,7 +409,10 @@ public class PokerappApplication {
                 List<String> possibleActions = gameState.getPossibleActions();
                 if (possibleActions == null || possibleActions.isEmpty()) {
                     logInfo("⚠️ No possible actions for player: " + currentUser.getUsername());
-                    break;
+                    // Try refreshing the game state
+                    gameState = gameService.getGameState(gameId);
+                    Thread.sleep(200); // Short delay before retry
+                    continue;
                 }
 
                 // Make a decision based on possible actions
@@ -392,16 +422,19 @@ public class PokerappApplication {
                 logInfo("  Move " + (moveCount + 1) + ": " + currentUser.getUsername() + " - " + move.getType() +
                         (move.getAmount() != null ? " $" + move.getAmount() : ""));
 
-                // Execute the move
-                gameState = gameService.makeMove(gameId, currentUser.getId(), move);
-                moveCount++;
-
-                // Add a small delay to make logs easier to read
                 try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    // Execute the move
+                    gameState = gameService.makeMove(gameId, currentUser.getId(), move);
+                    moveCount++;
+                } catch (Exception e) {
+                    logInfo("⚠️ Error making move: " + e.getMessage() + " - Refreshing game state and trying again");
+                    gameState = gameService.getGameState(gameId);
+                    Thread.sleep(500); // Longer delay after error
+                    continue;
                 }
+
+                // Add a small delay for readability
+                Thread.sleep(200);
             }
 
             if (moveCount >= maxMoves) {
@@ -409,6 +442,7 @@ public class PokerappApplication {
             }
         } catch (Exception e) {
             logInfo("❌ Error running game: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -601,12 +635,22 @@ public class PokerappApplication {
     }
 
     /**
-     * Logs the current game state in a readable format
+     * Logs the current game state in a readable format with enhanced player turn information
      */
     private void logGameState(GameStateDto gameState) {
         logInfo("\n📊 GAME STATE UPDATE:");
         logInfo("Game ID: " + gameState.getGameId() + " | Status: " + gameState.getStatus());
         logInfo("Current Stage: " + gameState.getStage() + " | Pot: $" + gameState.getPot());
+
+        // Log who the current player is very clearly
+        if (gameState.getCurrentPlayerId() != null) {
+            logInfo("⏩ CURRENT PLAYER'S TURN: " +
+                    gameState.getCurrentPlayerName() +
+                    " (Player ID: " + gameState.getCurrentPlayerId() +
+                    ", User ID: " + gameState.getCurrentUserId() + ")");
+        } else {
+            logInfo("⏸️ No current player - game may be between stages");
+        }
 
         // Log community cards if any
         if (gameState.getCommunityCards() != null && !gameState.getCommunityCards().isEmpty()) {
@@ -624,16 +668,19 @@ public class PokerappApplication {
             logInfo(communityCards.toString());
         }
 
-        // Log each player's state
+        // Log each player's state with enhanced turn indicator
         logInfo("\nPlayers:");
         for (PlayerStateDto player : gameState.getPlayers()) {
             StringBuilder playerInfo = new StringBuilder();
             playerInfo.append(player.getUsername())
+                    .append(" (Player ID: ").append(player.getId())
+                    .append(", User ID: ").append(player.getUserId()).append(")")
                     .append(" - Chips: $").append(player.getChips())
                     .append(" | Status: ").append(player.getStatus());
 
+            // Make it very obvious which player's turn it is
             if (player.isTurn()) {
-                playerInfo.append(" 👈 CURRENT PLAYER");
+                playerInfo.append(" 👈 CURRENT TURN");
             }
 
             // Add player's cards if visible

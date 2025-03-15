@@ -228,7 +228,15 @@ public class GameServiceImpl implements GameService {
                 // Find the current player to act
                 Player currentPlayer = determineCurrentPlayer(game);
                 if (currentPlayer != null) {
+                    // Enhanced current player information
                     gameStateDto.setCurrentPlayerId(currentPlayer.getId());
+                    gameStateDto.setCurrentUserId(currentPlayer.getUserId());
+                    gameStateDto.setCurrentPlayerName(currentPlayer.getUsername());
+
+                    // For debugging - log who the current player is
+                    System.out.println("CURRENT PLAYER IN GAME STATE: " + currentPlayer.getUsername() +
+                            " (Player ID: " + currentPlayer.getId() +
+                            ", User ID: " + currentPlayer.getUserId() + ")");
 
                     // Add possible actions for current player
                     gameStateDto.setPossibleActions(getPossibleActions(game, currentPlayer));
@@ -805,11 +813,17 @@ public class GameServiceImpl implements GameService {
 
         // Check if this player is the current player to act
         Player currentPlayer = determineCurrentPlayer(game);
-        dto.setTurn(currentPlayer != null && currentPlayer.getId().equals(player.getId()));
 
-        // Determine if cards should be visible:
-        // 1. For the game viewer (the player themselves)
-        // 2. At showdown (game finished or at river with betting completed)
+        // IMPORTANT: Set the isTurn flag to clearly indicate whose turn it is
+        boolean isCurrentPlayer = currentPlayer != null && currentPlayer.getId().equals(player.getId());
+        dto.setTurn(isCurrentPlayer);
+
+        // If this is the current player's turn, log it clearly for debugging
+        if (isCurrentPlayer) {
+            System.out.println("CURRENT PLAYER TURN: " + player.getUsername() + " (ID: " + player.getId() + ")");
+        }
+
+        // Card visibility logic (unchanged)
         User currentUser = null;
         try {
             currentUser = userService.getCurrentUser();

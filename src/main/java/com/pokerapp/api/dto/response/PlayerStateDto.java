@@ -4,22 +4,31 @@ package com.pokerapp.api.dto.response;
 import lombok.Data;
 import java.util.List;
 
-//@Data
+@Data
 public class PlayerStateDto {
-    private Long id;          // This should be the Player ID for consistency
-    private Long userId;      // Add this field to explicitly include User ID
+    private Long id;          // Player ID
+    private Long userId;      // User ID
     private String username;
     private Double chips;
     private String status;
     private List<CardDto> cards;
-    private boolean isTurn;
+    private boolean isTurn;   // Flag indicating if it's this player's turn
 
+    // Standard getters and setters
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public String getUsername() {
@@ -60,13 +69,5 @@ public class PlayerStateDto {
 
     public void setTurn(boolean turn) {
         isTurn = turn;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
     }
 }
