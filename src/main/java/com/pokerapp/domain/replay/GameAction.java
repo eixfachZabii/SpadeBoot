@@ -8,7 +8,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
-//@Data
+@Data
 @Entity
 @Table(name = "game_actions")
 public class GameAction {
@@ -38,61 +38,5 @@ public class GameAction {
         action.setActionData(move.getType() + ":" + move.getAmount());
         action.setSequenceNumber(sequenceNumber);
         return action;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Player getPlayer() {
-        return player;
-    }
-
-    public void setPlayer(Player player) {
-        this.player = player;
-    }
-
-    public String getActionType() {
-        return actionType;
-    }
-
-    public void setActionType(String actionType) {
-        this.actionType = actionType;
-    }
-
-    public String getActionData() {
-        return actionData;
-    }
-
-    public void setActionData(String actionData) {
-        this.actionData = actionData;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public Integer getSequenceNumber() {
-        return sequenceNumber;
-    }
-
-    public void setSequenceNumber(Integer sequenceNumber) {
-        this.sequenceNumber = sequenceNumber;
-    }
-
-    public Replay getReplay() {
-        return replay;
-    }
-
-    public void setReplay(Replay replay) {
-        this.replay = replay;
     }
 }

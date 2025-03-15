@@ -6,13 +6,15 @@ import com.pokerapp.domain.user.Spectator;
 import com.pokerapp.domain.user.PlayerStatus;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-//@Data
+@Data
 @Entity
 @Table(name = "poker_tables")
 public class PokerTable {
@@ -113,91 +115,4 @@ public class PokerTable {
         return players.remove(player);
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Integer getMaxPlayers() {
-        return maxPlayers;
-    }
-
-    public void setMaxPlayers(Integer maxPlayers) {
-        this.maxPlayers = maxPlayers;
-    }
-
-    public Double getMinBuyIn() {
-        return minBuyIn;
-    }
-
-    public void setMinBuyIn(Double minBuyIn) {
-        this.minBuyIn = minBuyIn;
-    }
-
-    public Double getMaxBuyIn() {
-        return maxBuyIn;
-    }
-
-    public void setMaxBuyIn(Double maxBuyIn) {
-        this.maxBuyIn = maxBuyIn;
-    }
-
-    public Boolean getPrivate() {
-        return isPrivate;
-    }
-
-    public void setPrivate(Boolean aPrivate) {
-        isPrivate = aPrivate;
-    }
-
-    public Player getOwner() {
-        return owner;
-    }
-
-    public void setOwner(Player owner) {
-        this.owner = owner;
-    }
-
-    public Set<Player> getPlayers() {
-        return players;
-    }
-
-    public void setPlayers(Set<Player> players) {
-        this.players = players;
-    }
-
-    public Set<Spectator> getSpectators() {
-        return spectators;
-    }
-
-    public void setSpectators(Set<Spectator> spectators) {
-        this.spectators = spectators;
-    }
-
-    public Game getCurrentGame() {
-        return currentGame;
-    }
-
-    public void setCurrentGame(Game currentGame) {
-        this.currentGame = currentGame;
-    }
 }

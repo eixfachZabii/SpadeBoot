@@ -758,6 +758,14 @@ public class GameServiceImpl implements GameService {
         }
     }
 
+    /**
+     * Checks if it's the given player's turn to act
+     * Improved with better logging for debugging turn issues
+     *
+     * @param game The current game
+     * @param player The player to check
+     * @return true if it's the player's turn, false otherwise
+     */
     private boolean isPlayerTurn(Game game, Player player) {
         Player currentPlayer = determineCurrentPlayer(game);
         return currentPlayer != null && currentPlayer.getId().equals(player.getId());
@@ -796,7 +804,7 @@ public class GameServiceImpl implements GameService {
         CardDto dto = new CardDto();
         if (card.isShowing()) {
             dto.setSuit(card.getSuit().toString());
-            dto.setRank(card.getRank().toString());
+            dto.setRank(card.getCRank().toString());
         } else {
             dto.setHidden(true);
         }
@@ -823,7 +831,7 @@ public class GameServiceImpl implements GameService {
             System.out.println("CURRENT PLAYER TURN: " + player.getUsername() + " (ID: " + player.getId() + ")");
         }
 
-        // Card visibility logic (unchanged)
+        // Card visibility logic
         User currentUser = null;
         try {
             currentUser = userService.getCurrentUser();

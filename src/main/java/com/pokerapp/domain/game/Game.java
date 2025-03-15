@@ -1,16 +1,26 @@
 // src/main/java/com/pokerapp/domain/game/Game.java
 package com.pokerapp.domain.game;
 
+import com.pokerapp.domain.card.Card;
 import com.pokerapp.domain.card.Deck;
 import com.pokerapp.domain.card.Hand;
+import com.pokerapp.domain.poker.HandEvaluator;
+import com.pokerapp.domain.poker.HandRank;
 import com.pokerapp.domain.user.Player;
+import com.pokerapp.domain.user.PlayerStatus;
+import com.pokerapp.service.impl.HandEvaluationServiceImpl;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import jakarta.persistence.Table;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-//@Data
+import jakarta.persistence.Table;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@Data
 @Entity
 @Table(name = "games")
 public class Game {
@@ -81,81 +91,13 @@ public class Game {
         }
     }
 
+    /**
+     * Determines the winners of the current game round
+     * @return List of players who are winners
+     */
     public List<Player> determineWinner() {
         // Implement winner determination logic using HandEvaluator
         //TODO
         return new ArrayList<>(); // Placeholder
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Double getSmallBlind() {
-        return smallBlind;
-    }
-
-    public void setSmallBlind(Double smallBlind) {
-        this.smallBlind = smallBlind;
-    }
-
-    public Double getBigBlind() {
-        return bigBlind;
-    }
-
-    public void setBigBlind(Double bigBlind) {
-        this.bigBlind = bigBlind;
-    }
-
-    public Integer getDealerPosition() {
-        return dealerPosition;
-    }
-
-    public void setDealerPosition(Integer dealerPosition) {
-        this.dealerPosition = dealerPosition;
-    }
-
-    public GameStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(GameStatus status) {
-        this.status = status;
-    }
-
-    public PokerTable getPokerTable() {
-        return pokerTable;
-    }
-
-    public void setPokerTable(PokerTable pokerTable) {
-        this.pokerTable = pokerTable;
-    }
-
-    public Deck getDeck() {
-        return deck;
-    }
-
-    public void setDeck(Deck deck) {
-        this.deck = deck;
-    }
-
-    public List<GameRound> getGameRounds() {
-        return gameRounds;
-    }
-
-    public void setGameRounds(List<GameRound> gameRounds) {
-        this.gameRounds = gameRounds;
-    }
-
-    public GameRound getCurrentRound() {
-        return currentRound;
-    }
-
-    public void setCurrentRound(GameRound currentRound) {
-        this.currentRound = currentRound;
     }
 }

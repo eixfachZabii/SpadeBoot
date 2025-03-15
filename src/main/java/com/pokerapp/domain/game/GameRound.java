@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import jakarta.persistence.Table;
 
-//@Data
+@Data
 @Entity
 @Table(name = "game_rounds")
 public class GameRound {
@@ -71,61 +71,5 @@ public class GameRound {
 
         bettingRounds.add(newRound);
         currentBettingRound = newRound;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Integer getRoundNumber() {
-        return roundNumber;
-    }
-
-    public void setRoundNumber(Integer roundNumber) {
-        this.roundNumber = roundNumber;
-    }
-
-    public Double getPot() {
-        return pot;
-    }
-
-    public void setPot(Double pot) {
-        this.pot = pot;
-    }
-
-    public List<Card> getCommunityCards() {
-        return communityCards;
-    }
-
-    public void setCommunityCards(List<Card> communityCards) {
-        this.communityCards = communityCards;
-    }
-
-    public List<BettingRound> getBettingRounds() {
-        return bettingRounds;
-    }
-
-    public void setBettingRounds(List<BettingRound> bettingRounds) {
-        this.bettingRounds = bettingRounds;
-    }
-
-    public Game getGame() {
-        return game;
-    }
-
-    public void setGame(Game game) {
-        this.game = game;
-    }
-
-    public BettingRound getCurrentBettingRound() {
-        return currentBettingRound;
-    }
-
-    public void setCurrentBettingRound(BettingRound currentBettingRound) {
-        this.currentBettingRound = currentBettingRound;
     }
 }

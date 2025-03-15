@@ -16,54 +16,6 @@ public class Replay {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    public Game getGame() {
-        return game;
-    }
-
-    public void setGame(Game game) {
-        this.game = game;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalDateTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalDateTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public Integer getActionCounter() {
-        return actionCounter;
-    }
-
-    public void setActionCounter(Integer actionCounter) {
-        this.actionCounter = actionCounter;
-    }
-
-    public List<GameAction> getActions() {
-        return actions;
-    }
-
-    public void setActions(List<GameAction> actions) {
-        this.actions = actions;
-    }
-
     @OneToOne
     private Game game;
 

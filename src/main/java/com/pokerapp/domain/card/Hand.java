@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 
-//@Data
+@Data
 @Entity
 @Table(name = "hands")
 public class Hand {
@@ -23,21 +23,5 @@ public class Hand {
 
     public void clear() {
         cards.clear();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public List<Card> getCards() {
-        return cards;
-    }
-
-    public void setCards(List<Card> cards) {
-        this.cards = cards;
     }
 }

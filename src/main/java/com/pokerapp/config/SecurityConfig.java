@@ -28,6 +28,7 @@ import java.util.Arrays;
 )
 public class SecurityConfig {
 
+    //TODO: Security fixxn
 //    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 //
 //    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {

@@ -18,12 +18,4 @@ public class MoveDto {
     public void setType(@NotNull String type) {
         this.type = type;
     }
-
-    public Double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(Double amount) {
-        this.amount = amount;
-    }
 }

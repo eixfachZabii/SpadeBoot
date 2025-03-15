@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 
 public class HandEvaluator {
 
+    //TODO: ALLES CHECKEN
+
     public HandRank evaluateHand(List<Card> hand, List<Card> communityCards) {
         List<Card> allCards = new ArrayList<>(hand);
         allCards.addAll(communityCards);
@@ -72,7 +74,7 @@ public class HandEvaluator {
     // Hand evaluation methods
     private boolean isRoyalFlush(List<Card> cards) {
         return isStraightFlush(cards) && cards.stream()
-                .anyMatch(card -> card.getRank() == c_Rank.ACE);
+                .anyMatch(card -> card.getCRank() == c_Rank.ACE);
     }
 
     private boolean isStraightFlush(List<Card> cards) {
@@ -128,7 +130,7 @@ public class HandEvaluator {
 
         // Get unique ranks sorted by value
         List<Integer> rankValues = cards.stream()
-                .map(c -> c.getRank().getValue())
+                .map(c -> c.getCRank().getValue())
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());

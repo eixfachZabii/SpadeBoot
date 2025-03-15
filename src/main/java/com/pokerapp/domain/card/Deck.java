@@ -2,30 +2,16 @@
 package com.pokerapp.domain.card;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
 
-//@Data
+@Data
 @Entity
 @Table(name = "decks")
 public class Deck {
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public List<Card> getCards() {
-        return cards;
-    }
-
-    public void setCards(List<Card> cards) {
-        this.cards = cards;
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,7 +27,7 @@ public class Deck {
                 for (c_Rank cRank : c_Rank.values()) {
                     Card card = new Card();
                     card.setSuit(suit);
-                    card.setRank(cRank);
+                    card.setCRank(cRank);
                     card.setShowing(false);
                     cards.add(card);
                 }

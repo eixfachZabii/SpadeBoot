@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 
-//@Data
+@Data
 @Entity
 @Table(name = "players")
 public class Player {
@@ -53,7 +53,7 @@ public class Player {
 
     // Player-specific methods
     public void makeMove(Move move) {
-        // Logic for processing a player's move
+        // Logic for processing a player's move: TODO
     }
 
     public void rebuy(Double amount) {
@@ -73,53 +73,5 @@ public class Player {
     }
 
     public Player() {
-    }
-
-    public User getUser() {
-        return user;
-    }   
-
-    public void setUser(User user) {
-        this.user = user;
-    }  
-
-    public Double getChips() {
-        return chips;
-    }
-
-    public void setChips(Double chips) {
-        this.chips = chips;
-    }
-
-    public PlayerStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(PlayerStatus status) {
-        this.status = status;
-    }
-
-    public Hand getHand() {
-        return hand;
-    }
-
-    public void setHand(Hand hand) {
-        this.hand = hand;
-    }
-
-    public Long getCurrentTableId() {
-        return currentTableId;
-    }
-
-    public void setCurrentTableId(Long currentTableId) {
-        this.currentTableId = currentTableId;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 }

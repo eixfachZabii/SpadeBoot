@@ -14,7 +14,7 @@ public class CardUtils {
 
     public static List<Card> sortByRank(List<Card> cards) {
         return cards.stream()
-                .sorted(Comparator.comparing(card -> card.getRank().getValue()))
+                .sorted(Comparator.comparing(card -> card.getCRank().getValue()))
                 .collect(Collectors.toList());
     }
 
@@ -23,7 +23,7 @@ public class CardUtils {
 
         // Check for A-2-3-4-5 straight
         boolean lowStraight = sortedCards.stream()
-                .map(card -> card.getRank())
+                .map(Card::getCRank)
                 .collect(Collectors.toSet())
                 .containsAll(List.of(c_Rank.ACE, c_Rank.TWO, c_Rank.THREE, c_Rank.FOUR, c_Rank.FIVE));
 
@@ -31,8 +31,8 @@ public class CardUtils {
 
         // Check normal straight
         for (int i = 0; i < sortedCards.size() - 1; i++) {
-            if (sortedCards.get(i + 1).getRank().getValue() -
-                    sortedCards.get(i).getRank().getValue() != 1) {
+            if (sortedCards.get(i + 1).getCRank().getValue() -
+                    sortedCards.get(i).getCRank().getValue() != 1) {
                 return false;
             }
         }
@@ -47,6 +47,6 @@ public class CardUtils {
 
     public static Map<c_Rank, Long> getRankFrequency(List<Card> cards) {
         return cards.stream()
-                .collect(Collectors.groupingBy(Card::getRank, Collectors.counting()));
+                .collect(Collectors.groupingBy(Card::getCRank, Collectors.counting()));
     }
 }

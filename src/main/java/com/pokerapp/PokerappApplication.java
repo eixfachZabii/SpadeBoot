@@ -71,11 +71,11 @@ public class PokerappApplication {
 
         try {
             List<User> users = createTestUsers();
-//            List<TableDto> tables = createPokerTables(users);
-//            createAndRunTestGames(tables);
-//            testSpectatorFunctionality(users, tables);
-//            testInvitations(users, tables);
-            simulateCompletePokerRound(users);
+            List<TableDto> tables = createPokerTables(users);
+            createAndRunTestGames(tables);
+            testSpectatorFunctionality(users, tables);
+            testInvitations(users, tables);
+//            simulateCompletePokerRound(users);
             //testStatisticsTracking(users);
 
             logInfo("\n🚀 Test environment initialization complete!");

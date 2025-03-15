@@ -15,7 +15,7 @@ import lombok.Data;
 import java.util.Map;
 import java.util.HashMap;
 
-//@Data
+@Data
 @Entity
 @Table(name = "spectators")
 public class Spectator {
@@ -42,27 +42,12 @@ public class Spectator {
     // Spectator-specific methods
     public Map<Player, Double> viewWinOdds() {
         // Logic to calculate win odds
+        //TODO
         return new HashMap<>();
     }
 
     public void watchReplay(Game game) {
+        //TODO
         // Logic for watching game replay
-    }
-
-    // Getters and setters
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Long getWatchingTableId() {
-        return watchingTableId;
-    }
-
-    public void setWatchingTableId(Long watchingTableId) {
-        this.watchingTableId = watchingTableId;
     }
 }

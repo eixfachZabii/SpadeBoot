@@ -8,7 +8,7 @@ import lombok.Data;
 import java.util.HashMap;
 import java.util.Map;
 
-//@Data
+@Data
 @Entity
 @Table(name = "game_results")
 public class GameResult {
@@ -27,36 +27,4 @@ public class GameResult {
     private Map<Player, Double> winnings = new HashMap<>();
 
     private Long timestamp = System.currentTimeMillis();
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Game getGame() {
-        return game;
-    }
-
-    public void setGame(Game game) {
-        this.game = game;
-    }
-
-    public Map<Player, Double> getWinnings() {
-        return winnings;
-    }
-
-    public void setWinnings(Map<Player, Double> winnings) {
-        this.winnings = winnings;
-    }
-
-    public Long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(Long timestamp) {
-        this.timestamp = timestamp;
-    }
 }

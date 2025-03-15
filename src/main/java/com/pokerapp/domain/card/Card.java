@@ -2,31 +2,16 @@
 package com.pokerapp.domain.card;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 
-//@Data
+@Data
 @Entity
 @Table(name = "cards")
 public class Card {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    public Suit getSuit() {
-        return suit;
-    }
-
-    public void setSuit(Suit suit) {
-        this.suit = suit;
-    }
-
-    public c_Rank getRank() {
-        return cRank;
-    }
-
-    public void setRank(c_Rank cRank) {
-        this.cRank = cRank;
-    }
 
     @Enumerated(EnumType.STRING)
     private Suit suit;
@@ -39,14 +24,6 @@ public class Card {
     @Override
     public String toString() {
         return cRank + " of " + suit;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public boolean isShowing() {

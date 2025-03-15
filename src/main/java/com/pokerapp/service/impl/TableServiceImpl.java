@@ -52,7 +52,7 @@ public class TableServiceImpl implements TableService {
         pokerTable.setMaxPlayers(settings.getMaxPlayers());
         pokerTable.setMinBuyIn(settings.getMinBuyIn());
         pokerTable.setMaxBuyIn(settings.getMaxBuyIn());
-        pokerTable.setPrivate(settings.getPrivate());
+        pokerTable.setIsPrivate(settings.getPrivate());
         pokerTable.setOwner(ownerAsPlayer);
 
         PokerTable savedTable = tableRepository.save(pokerTable);
@@ -82,7 +82,7 @@ public class TableServiceImpl implements TableService {
     @Override
     public List<TableDto> getPublicTables() {
         return tableRepository.findAll().stream()
-                .filter(table -> !table.getPrivate())
+                .filter(table -> !table.getIsPrivate())
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
@@ -191,7 +191,7 @@ public class TableServiceImpl implements TableService {
         dto.setCurrentPlayers(pokerTable.getPlayers().size());
         dto.setMinBuyIn(pokerTable.getMinBuyIn());
         dto.setMaxBuyIn(pokerTable.getMaxBuyIn());
-        dto.setPrivate(pokerTable.getPrivate());
+        dto.setIsPrivate(pokerTable.getIsPrivate());
         dto.setOwnerId(pokerTable.getOwner().getUserId());
         dto.setHasActiveGame(pokerTable.getCurrentGame() != null);
         return dto;
