@@ -28,8 +28,8 @@ public class TableController {
     public ResponseEntity<TableDto> createTable(@Valid @RequestBody TableSettingsDto settings) {
         User currentUser = userService.getCurrentUser();
         // No change needed here - just pass the User entity
-        PokerTable table = tableService.createTable(settings, currentUser);
-        return ResponseEntity.ok(convertToDto(table));
+        TableDto table = tableService.createTable(settings, currentUser);
+        return ResponseEntity.ok(table);
     }
 
     @GetMapping
@@ -44,7 +44,7 @@ public class TableController {
 
     @GetMapping("/{id}")
     public ResponseEntity<TableDto> getTableById(@PathVariable Long id) {
-        return ResponseEntity.ok(convertToDto(tableService.getTableById(id)));
+        return ResponseEntity.ok(tableService.getTableById(id));
     }
 
     @PostMapping("/{id}/join")

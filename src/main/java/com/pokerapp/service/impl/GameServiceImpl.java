@@ -1,10 +1,10 @@
-// src/main/java/com/pokerapp/service/impl/GameServiceImpl.java
 package com.pokerapp.service.impl;
 
 import com.pokerapp.api.dto.request.MoveDto;
-import com.pokerapp.api.dto.response.GameStateDto;
-import com.pokerapp.api.dto.response.PlayerStateDto;
 import com.pokerapp.api.dto.response.CardDto;
+import com.pokerapp.api.dto.response.GameStateDto;
+import com.pokerapp.api.dto.response.MessageDto;
+import com.pokerapp.api.dto.response.PlayerStateDto;
 import com.pokerapp.domain.card.Card;
 import com.pokerapp.domain.card.Hand;
 import com.pokerapp.domain.game.*;
@@ -21,50 +21,30 @@ import com.pokerapp.repository.*;
 import com.pokerapp.service.GameService;
 import com.pokerapp.service.ReplayService;
 import com.pokerapp.service.StatisticsService;
+import com.pokerapp.service.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-//import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class GameServiceImpl implements GameService {
 
-    @Autowired
     private final GameRepository gameRepository;
-
-    @Autowired
     private final TableRepository tableRepository;
-
-    @Autowired
     private final PlayerRepository playerRepository;
-
-    @Autowired
     private final ReplayRepository replayRepository;
-
-    @Autowired
     private final ReplayService replayService;
-
-    @Autowired
     private final StatisticsRepository statisticsRepository;
-
-    @Autowired
     private final StatisticsService statisticsService;
-
-    @Autowired
     private final HandEvaluator handEvaluator;
-
-    @Autowired
     private final SimpMessagingTemplate messagingTemplate;
-
-    @Autowired
-    private final UserServiceImpl userService;
+    private final UserService userService;
 
     @Autowired
     public GameServiceImpl(
@@ -72,9 +52,12 @@ public class GameServiceImpl implements GameService {
             TableRepository tableRepository,
             PlayerRepository playerRepository,
             ReplayRepository replayRepository,
-            ReplayService replayService, StatisticsRepository statisticsRepository, StatisticsService statisticsService,
+            ReplayService replayService,
+            StatisticsRepository statisticsRepository,
+            StatisticsService statisticsService,
             HandEvaluator handEvaluator,
-            SimpMessagingTemplate messagingTemplate, UserServiceImpl userService) {
+            SimpMessagingTemplate messagingTemplate,
+            UserService userService) {
         this.gameRepository = gameRepository;
         this.tableRepository = tableRepository;
         this.playerRepository = playerRepository;
@@ -91,7 +74,12 @@ public class GameServiceImpl implements GameService {
     @Transactional
     public Game createGame(Long tableId) {
         PokerTable pokerTable = tableRepository.findById(tableId)
-                .orElseThrow(() -> new NotFoundException("Table not found"));
+                .orElseThrow(() -> new NotFoundException("Table not found with ID: " + tableId));
+
+        // Check if the table has enough players
+        if (pokerTable.getPlayers().size() < 2) {
+            throw new IllegalStateException("Cannot create a game with fewer than 2 players");
+        }
 
         Game game = new Game();
         game.setPokerTable(pokerTable);
@@ -101,71 +89,148 @@ public class GameServiceImpl implements GameService {
 
         game = gameRepository.save(game);
 
-        // Update the table's current game - make sure to properly set both sides
+        // Update the table's current game
         pokerTable.setCurrentGame(game);
         tableRepository.save(pokerTable);
 
         // Create and associate replay system
         replayService.createReplay(game);
 
+        // Log game creation in system messages
+        broadcastSystemMessage(game.getId(),
+                "Game created at table: " + pokerTable.getName());
+
         return game;
     }
 
     @Override
-    //@Transactional
+    @Transactional
     public Game startGame(Long gameId) {
         Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new NotFoundException("Game not found"));
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
         if (game.getStatus() != GameStatus.WAITING) {
             throw new IllegalStateException("Game is not in WAITING state");
         }
 
-        if (game.getPokerTable().getPlayers().size() < 2) {
+        PokerTable table = game.getPokerTable();
+        if (table.getPlayers().size() < 2) {
             throw new IllegalStateException("Need at least 2 players to start a game");
         }
 
-        game.start();
+        // Initialize the deck
+        game.getDeck().initialize();
+        game.getDeck().shuffle();
+
+        // Deal cards to players
+        dealPlayerCards(game);
+
+        // Create first round
+        GameRound firstRound = new GameRound();
+        firstRound.setRoundNumber(1);
+        firstRound.setGame(game);
+        firstRound.setPot(0.0);
+        game.getGameRounds().add(firstRound);
+        game.setCurrentRound(firstRound);
+
+        // Collect blinds from players
+        collectBlinds(game);
+
+        // Start with preflop betting
+        firstRound.advanceToNextBettingRound();
+
+        // Mark game as in progress
+        game.setStatus(GameStatus.IN_PROGRESS);
         Game savedGame = gameRepository.save(game);
 
         // Notify all players
+        broadcastSystemMessage(gameId, "Game started. Blinds: $" +
+                game.getSmallBlind() + "/$" + game.getBigBlind());
         messagingTemplate.convertAndSend("/topic/games/" + gameId, getGameState(gameId));
 
         return savedGame;
     }
 
+    /**
+     * Collect the small and big blinds from the appropriate players
+     */
+    private void collectBlinds(Game game) {
+        List<Player> activePlayers = new ArrayList<>(game.getPokerTable().getPlayers());
+
+        // Order players starting with the one after the dealer
+        Collections.rotate(activePlayers, -(game.getDealerPosition() + 1));
+
+        if (activePlayers.size() >= 2) {
+            // Small blind is posted by the first player after the dealer
+            Player smallBlindPlayer = activePlayers.get(0);
+            double smallBlindAmount = Math.min(game.getSmallBlind(), smallBlindPlayer.getChips());
+            smallBlindPlayer.setChips(smallBlindPlayer.getChips() - smallBlindAmount);
+
+            // Big blind is posted by the second player after the dealer
+            Player bigBlindPlayer = activePlayers.get(1);
+            double bigBlindAmount = Math.min(game.getBigBlind(), bigBlindPlayer.getChips());
+            bigBlindPlayer.setChips(bigBlindPlayer.getChips() - bigBlindAmount);
+
+            // Add blinds to the pot
+            double totalBlinds = smallBlindAmount + bigBlindAmount;
+            game.getCurrentRound().setPot(totalBlinds);
+
+            // Save updated player balances
+            playerRepository.save(smallBlindPlayer);
+            playerRepository.save(bigBlindPlayer);
+
+            // Set up betting round with current bet equal to big blind
+            BettingRound bettingRound = game.getCurrentRound().getCurrentBettingRound();
+            if (bettingRound != null) {
+                bettingRound.setCurrentBet(bigBlindAmount);
+            }
+
+            // Record blinds in the game log
+            broadcastSystemMessage(game.getId(),
+                    smallBlindPlayer.getUsername() + " posts small blind: $" + smallBlindAmount);
+            broadcastSystemMessage(game.getId(),
+                    bigBlindPlayer.getUsername() + " posts big blind: $" + bigBlindAmount);
+        }
+    }
+
     @Override
     public GameStateDto getGameState(Long gameId) {
         Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new NotFoundException("Game not found"));
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
         GameStateDto gameStateDto = new GameStateDto();
         gameStateDto.setGameId(game.getId());
         gameStateDto.setStatus(game.getStatus().toString());
 
+        // Set initial empty lists to avoid null references
+        gameStateDto.setCommunityCards(new ArrayList<>());
+        gameStateDto.setPossibleActions(new ArrayList<>());
+        gameStateDto.setPlayers(new ArrayList<>());
+        gameStateDto.setMessages(new ArrayList<>());
+
         if (game.getCurrentRound() != null) {
-            gameStateDto.setPot(game.getCurrentRound().getPot());
+            GameRound currentRound = game.getCurrentRound();
+            gameStateDto.setPot(currentRound.getPot());
 
             // Only show community cards if they've been dealt
-            List<CardDto> communityCards = game.getCurrentRound().getCommunityCards().stream()
+            List<CardDto> communityCards = currentRound.getCommunityCards().stream()
                     .filter(Card::isShowing)
                     .map(this::convertToCardDto)
                     .collect(Collectors.toList());
             gameStateDto.setCommunityCards(communityCards);
 
-            BettingRound bettingRound = game.getCurrentRound().getCurrentBettingRound();
+            BettingRound bettingRound = currentRound.getCurrentBettingRound();
             if (bettingRound != null) {
                 gameStateDto.setCurrentBet(bettingRound.getCurrentBet());
                 gameStateDto.setStage(bettingRound.getStage().toString());
 
-                // Set current player
-                Player nextPlayer = bettingRound.getNextPlayer();
-                if (nextPlayer != null) {
-                    gameStateDto.setCurrentPlayerId(nextPlayer.getUserId());
+                // Find the current player to act
+                Player currentPlayer = determineCurrentPlayer(game);
+                if (currentPlayer != null) {
+                    gameStateDto.setCurrentPlayerId(currentPlayer.getId());
 
                     // Add possible actions for current player
-                    List<String> possibleActions = getPossibleActions(game, nextPlayer);
-                    gameStateDto.setPossibleActions(possibleActions);
+                    gameStateDto.setPossibleActions(getPossibleActions(game, currentPlayer));
                 }
             }
         }
@@ -176,15 +241,69 @@ public class GameServiceImpl implements GameService {
                 .collect(Collectors.toList());
         gameStateDto.setPlayers(playerStates);
 
+        // Add some system messages
+        List<MessageDto> messages = new ArrayList<>();
+        MessageDto statusMsg = new MessageDto();
+        statusMsg.setType("INFO");
+        statusMsg.setContent("Game status: " + game.getStatus());
+        statusMsg.setTimestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        messages.add(statusMsg);
+
+        gameStateDto.setMessages(messages);
+
         return gameStateDto;
     }
 
+    /**
+     * Determine which player's turn it is in the current betting round
+     */
+    private Player determineCurrentPlayer(Game game) {
+        GameRound round = game.getCurrentRound();
+        if (round == null) return null;
+
+        BettingRound bettingRound = round.getCurrentBettingRound();
+        if (bettingRound == null) return null;
+
+        // Get the list of active players in order
+        List<Player> orderedPlayers = getOrderedPlayers(game);
+
+        // Filter to only active players who haven't folded or gone all-in
+        List<Player> activePlayers = orderedPlayers.stream()
+                .filter(p -> p.getStatus() == PlayerStatus.ACTIVE)
+                .collect(Collectors.toList());
+
+        if (activePlayers.isEmpty()) return null;
+
+        // The current player is determined by the currentPlayerIndex in the betting round
+        int currentIndex = bettingRound.getCurrentPlayerIndex();
+        if (currentIndex >= activePlayers.size()) {
+            currentIndex = 0;
+        }
+
+        return activePlayers.get(currentIndex);
+    }
+
+    /**
+     * Get the players ordered correctly for the current betting round
+     */
+    private List<Player> getOrderedPlayers(Game game) {
+        List<Player> players = new ArrayList<>(game.getPokerTable().getPlayers());
+
+        // In preflop, action starts with player after big blind (3rd position from dealer)
+        // In later rounds, action starts with player after dealer
+        int startPosition = game.getCurrentRound().getCurrentBettingRound().getStage() == BettingStage.PREFLOP ? 3 : 1;
+
+        // Rotate the list so the first player to act is at the beginning
+        Collections.rotate(players, -(game.getDealerPosition() + startPosition) % players.size());
+
+        return players;
+    }
 
     @Override
     @Transactional
     public GameStateDto makeMove(Long gameId, Long userId, MoveDto moveDto) {
         Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new NotFoundException("Game not found"));
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
         // Find player by user ID
         Player player = playerRepository.findByUserId(userId)
@@ -207,31 +326,179 @@ public class GameServiceImpl implements GameService {
         move.setType(MoveType.valueOf(moveDto.getType()));
         move.setAmount(moveDto.getAmount());
         move.setPlayer(player);
+        move.setTimestamp(System.currentTimeMillis());
 
+        // Validate the move based on type
+        validateMove(move, player, bettingRound);
+
+        // Process the move's effect on chips and pot
+        processMove(move, player, round);
+
+        // Add the move to the betting round
         bettingRound.processMove(player, move);
 
         // Record for replay
         Replay replay = replayRepository.findByGameId(gameId)
-                .orElseThrow(() -> new NotFoundException("Replay not found"));
+                .orElseThrow(() -> new NotFoundException("Replay not found for game ID: " + gameId));
         replay.recordAction(GameAction.fromMove(move, replay.getActionCounter() + 1));
         replayRepository.save(replay);
 
-        // Handle player status based on move
+        // Update player status based on move
         updatePlayerStatus(player, move);
         playerRepository.save(player);
 
+        // Advance to the next player in turn
+        advanceToNextPlayer(bettingRound, game);
+
         // Check if betting round is complete
-        if (isBettingRoundComplete(bettingRound)) {
+        if (isBettingRoundComplete(bettingRound, game)) {
             advanceGame(game);
         }
 
         gameRepository.save(game);
 
-        // Notify all players
+        // Broadcast the move to all players
+        broadcastPlayerMove(game.getId(), player, move);
+
+        // Notify all players of the updated game state
         GameStateDto gameState = getGameState(gameId);
         messagingTemplate.convertAndSend("/topic/games/" + gameId, gameState);
 
         return gameState;
+    }
+
+    /**
+     * Broadcast a player's move to all players at the table
+     */
+    private void broadcastPlayerMove(Long gameId, Player player, Move move) {
+        String message;
+        switch (move.getType()) {
+            case CHECK:
+                message = player.getUsername() + " checks";
+                break;
+            case CALL:
+                message = player.getUsername() + " calls $" + move.getAmount();
+                break;
+            case RAISE:
+                message = player.getUsername() + " raises to $" + move.getAmount();
+                break;
+            case FOLD:
+                message = player.getUsername() + " folds";
+                break;
+            case ALL_IN:
+                message = player.getUsername() + " goes all-in with $" + move.getAmount();
+                break;
+            default:
+                message = player.getUsername() + " makes a move: " + move.getType();
+        }
+
+        broadcastSystemMessage(gameId, message);
+    }
+
+    /**
+     * Broadcast a system message to all players
+     */
+    private void broadcastSystemMessage(Long gameId, String content) {
+        MessageDto message = new MessageDto();
+        message.setType("INFO");
+        message.setContent(content);
+        message.setTimestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+
+        messagingTemplate.convertAndSend("/topic/games/" + gameId + "/messages", message);
+    }
+
+    /**
+     * Validate a player's move based on game rules
+     */
+    private void validateMove(Move move, Player player, BettingRound bettingRound) {
+        Double currentBet = bettingRound.getCurrentBet();
+
+        switch (move.getType()) {
+            case CHECK:
+                if (currentBet > 0) {
+                    throw new InvalidMoveException("Cannot check when there's a bet to call");
+                }
+                break;
+
+            case CALL:
+                if (currentBet <= 0) {
+                    throw new InvalidMoveException("Cannot call when there's no bet");
+                }
+                if (player.getChips() < currentBet) {
+                    throw new InvalidMoveException("Not enough chips to call");
+                }
+                move.setAmount(currentBet);
+                break;
+
+            case RAISE:
+                if (move.getAmount() <= currentBet) {
+                    throw new InvalidMoveException("Raise amount must be greater than current bet");
+                }
+                if (move.getAmount() > player.getChips()) {
+                    throw new InvalidMoveException("Not enough chips to raise");
+                }
+                break;
+
+            case ALL_IN:
+                move.setAmount(player.getChips());
+                break;
+
+            case FOLD:
+                // No validation needed for fold
+                break;
+
+            default:
+                throw new InvalidMoveException("Invalid move type");
+        }
+    }
+
+    /**
+     * Process a move's effect on chips and pot
+     */
+    private void processMove(Move move, Player player, GameRound round) {
+        BettingRound bettingRound = round.getCurrentBettingRound();
+
+        switch (move.getType()) {
+            case CHECK:
+                // No chips are moved when checking
+                break;
+
+            case CALL:
+            case RAISE:
+            case ALL_IN:
+                double amount = move.getAmount();
+                player.setChips(player.getChips() - amount);
+                round.setPot(round.getPot() + amount);
+
+                // If it's a raise or all-in, update the current bet
+                if (move.getType() == MoveType.RAISE || move.getType() == MoveType.ALL_IN) {
+                    bettingRound.setCurrentBet(amount);
+                }
+                break;
+
+            case FOLD:
+                // No chips are moved when folding
+                break;
+        }
+    }
+
+    /**
+     * Advance to the next player in the betting round
+     */
+    private void advanceToNextPlayer(BettingRound bettingRound, Game game) {
+        List<Player> orderedPlayers = getOrderedPlayers(game);
+
+        // Filter to only active players
+        List<Player> activePlayers = orderedPlayers.stream()
+                .filter(p -> p.getStatus() == PlayerStatus.ACTIVE)
+                .collect(Collectors.toList());
+
+        if (activePlayers.isEmpty()) return;
+
+        // Increment the current player index
+        int currentIndex = bettingRound.getCurrentPlayerIndex();
+        currentIndex = (currentIndex + 1) % activePlayers.size();
+        bettingRound.setCurrentPlayerIndex(currentIndex);
     }
 
     private void updatePlayerStatus(Player player, Move move) {
@@ -243,86 +510,89 @@ public class GameServiceImpl implements GameService {
                 player.setStatus(PlayerStatus.ALL_IN);
                 break;
             default:
+                // Other moves keep the player ACTIVE
                 player.setStatus(PlayerStatus.ACTIVE);
         }
     }
 
-    @Override
-    //@Transactional
-    public Game endGame(Long gameId) {
-        Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new NotFoundException("Game not found"));
+    /**
+     * Check if the current betting round is complete
+     */
+    private boolean isBettingRoundComplete(BettingRound bettingRound, Game game) {
+        // Get all active players (not folded or all-in)
+        List<Player> activePlayers = game.getPokerTable().getPlayers().stream()
+                .filter(p -> p.getStatus() == PlayerStatus.ACTIVE)
+                .collect(Collectors.toList());
 
-        List<Player> winners = game.determineWinner();
-
-        // Distribute pot to winners and record for statistics
-        Map<Player, Double> winnings = new HashMap<>();
-
-        if (!winners.isEmpty()) {
-            GameRound round = game.getCurrentRound();
-            double potPerWinner = round.getPot() / winners.size();
-
-            for (Player winner : winners) {
-                winner.setChips(winner.getChips() + potPerWinner);
-                playerRepository.save(winner);
-                winnings.put(winner, potPerWinner);
-            }
+        // If there are no active players or only one, the betting round is complete
+        if (activePlayers.size() <= 1) {
+            return true;
         }
 
-        // Record all participants with zero winnings if they didn't win
-        for (Player player : game.getPokerTable().getPlayers()) {
-            if (!winners.contains(player)) {
-                winnings.put(player, 0.0);
-            }
+        // Check if all active players have acted
+        List<Player> playersWhoActed = bettingRound.getMoves().stream()
+                .map(Move::getPlayer)
+                .collect(Collectors.toList());
+
+        // If not all active players have acted, the round isn't complete
+        if (activePlayers.stream().anyMatch(p -> !playersWhoActed.contains(p))) {
+            return false;
         }
 
-        // Record game results for statistics
-        GameResult gameResult = statisticsService.recordGameResult(game, winnings);
-        statisticsService.updateUserStatistics(gameResult);
+        // Check if all active players have the same amount committed 
+        // or are all-in (provided at least one player has acted)
+        if (!bettingRound.getMoves().isEmpty()) {
+            Double highestBet = bettingRound.getCurrentBet();
 
-        game.setStatus(GameStatus.FINISHED);
-        Game savedGame = gameRepository.save(game);
+            // Each active player should have called the highest bet
+            for (Player player : activePlayers) {
+                Double playerBet = bettingRound.getMoves().stream()
+                        .filter(m -> m.getPlayer().equals(player))
+                        .mapToDouble(Move::getAmount)
+                        .sum();
 
-        // Complete the replay
-        replayService.completeReplay(game.getId());
+                if (playerBet < highestBet && player.getStatus() != PlayerStatus.ALL_IN) {
+                    return false;
+                }
+            }
 
-        return savedGame;
+            return true;
+        }
+
+        return false;
     }
 
-
-    private boolean isPlayerTurn(Game game, Player player) {
-        GameRound round = game.getCurrentRound();
-        if (round == null) return false;
-
-        BettingRound bettingRound = round.getCurrentBettingRound();
-        if (bettingRound == null) return false;
-
-        Player nextPlayer = bettingRound.getNextPlayer();
-        return nextPlayer != null && nextPlayer.getUser().getId().equals(player.getUser().getId());
-    }
-
-    private boolean isBettingRoundComplete(BettingRound bettingRound) {
-        // Implementation to check if betting round is complete
-        // This would check if all active players have made a move and bets are equal
-        return bettingRound.getNextPlayer() == null;
-    }
-
+    /**
+     * Advance the game state after a completed betting round
+     */
     private void advanceGame(Game game) {
         GameRound round = game.getCurrentRound();
         BettingRound bettingRound = round.getCurrentBettingRound();
 
-        // If this was the river, determine winners and end the round
-        if (bettingRound.getStage() == BettingStage.RIVER) {
-            List<Player> winners = game.determineWinner();
+        // If this was the river or there's only one player left active, determine winners and end the round
+        if (bettingRound.getStage() == BettingStage.RIVER ||
+                game.getPokerTable().getPlayers().stream()
+                        .filter(p -> p.getStatus() != PlayerStatus.FOLDED)
+                        .count() <= 1) {
+
+            // Determine winners
+            Map<Player, Double> winnings = determineWinners(game);
 
             // Distribute pot
-            if (!winners.isEmpty()) {
-                double potPerWinner = round.getPot() / winners.size();
-                for (Player winner : winners) {
-                    winner.setChips(winner.getChips() + potPerWinner);
-                    playerRepository.save(winner);
-                }
+            for (Map.Entry<Player, Double> entry : winnings.entrySet()) {
+                Player winner = entry.getKey();
+                Double amount = entry.getValue();
+
+                winner.setChips(winner.getChips() + amount);
+                playerRepository.save(winner);
+
+                broadcastSystemMessage(game.getId(),
+                        winner.getUsername() + " wins $" + amount);
             }
+
+            // Record game results for statistics
+            GameResult gameResult = statisticsService.recordGameResult(game, winnings);
+            statisticsService.updateUserStatistics(gameResult);
 
             // Start new round or end game
             if (shouldStartNewRound(game)) {
@@ -330,11 +600,79 @@ public class GameServiceImpl implements GameService {
             } else {
                 game.setStatus(GameStatus.FINISHED);
                 replayService.completeReplay(game.getId());
+                broadcastSystemMessage(game.getId(), "Game finished");
             }
         } else {
             // Advance to next betting stage
             round.advanceToNextBettingRound();
+
+            // Broadcast the new stage
+            String stageName = "";
+            switch (round.getCurrentBettingRound().getStage()) {
+                case FLOP:
+                    stageName = "flop";
+                    break;
+                case TURN:
+                    stageName = "turn";
+                    break;
+                case RIVER:
+                    stageName = "river";
+                    break;
+            }
+
+            broadcastSystemMessage(game.getId(), "Dealing the " + stageName);
         }
+    }
+
+    /**
+     * Determine the winners of the current round and distribute the pot
+     */
+    private Map<Player, Double> determineWinners(Game game) {
+        GameRound round = game.getCurrentRound();
+
+        // Get all players who haven't folded
+        List<Player> activePlayers = game.getPokerTable().getPlayers().stream()
+                .filter(p -> p.getStatus() != PlayerStatus.FOLDED)
+                .collect(Collectors.toList());
+
+        // If only one player remains (others folded), they win the pot
+        if (activePlayers.size() == 1) {
+            Player winner = activePlayers.get(0);
+            Map<Player, Double> winnings = new HashMap<>();
+            winnings.put(winner, round.getPot());
+            return winnings;
+        }
+
+        // For multiple players, compare their hands to determine winner(s)
+        Map<Player, List<Card>> playerHands = activePlayers.stream()
+                .collect(Collectors.toMap(
+                        player -> player,
+                        player -> player.getHand().getCards()
+                ));
+
+        Map<Player, Integer> rankings = handEvaluator.compareHands(playerHands, round.getCommunityCards());
+
+        // Find the highest rank (lowest number = best hand)
+        int bestRank = rankings.values().stream()
+                .min(Integer::compareTo)
+                .orElse(Integer.MAX_VALUE);
+
+        // Find all players with the best rank
+        List<Player> winners = rankings.entrySet().stream()
+                .filter(entry -> entry.getValue() == bestRank)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+
+        // Calculate prize distribution
+        double totalPot = round.getPot();
+        double prizePerWinner = totalPot / winners.size();
+
+        Map<Player, Double> winnings = new HashMap<>();
+        for (Player winner : winners) {
+            winnings.put(winner, prizePerWinner);
+        }
+
+        return winnings;
     }
 
     private boolean shouldStartNewRound(Game game) {
@@ -353,6 +691,7 @@ public class GameServiceImpl implements GameService {
         for (Player player : game.getPokerTable().getPlayers()) {
             if (player.getChips() > 0) {
                 player.setStatus(PlayerStatus.ACTIVE);
+                playerRepository.save(player);
             }
         }
 
@@ -360,17 +699,37 @@ public class GameServiceImpl implements GameService {
         GameRound newRound = new GameRound();
         newRound.setRoundNumber(game.getGameRounds().size() + 1);
         newRound.setGame(game);
+        newRound.setPot(0.0);
         game.getGameRounds().add(newRound);
         game.setCurrentRound(newRound);
 
         // Advance dealer position
         game.setDealerPosition((game.getDealerPosition() + 1) % game.getPokerTable().getPlayers().size());
 
+        // Reset and shuffle the deck
+        game.getDeck().initialize();
+        game.getDeck().shuffle();
+
         // Deal cards
         dealPlayerCards(game);
 
+        // Collect blinds
+        collectBlinds(game);
+
         // Start with preflop betting
         newRound.advanceToNextBettingRound();
+
+        broadcastSystemMessage(game.getId(), "New round started. Dealer: " +
+                getPlayerAtPosition(game, game.getDealerPosition()).getUsername());
+    }
+
+    /**
+     * Get the player at a specific position around the table
+     */
+    private Player getPlayerAtPosition(Game game, int position) {
+        List<Player> players = new ArrayList<>(game.getPokerTable().getPlayers());
+        if (players.isEmpty()) return null;
+        return players.get(position % players.size());
     }
 
     private void dealPlayerCards(Game game) {
@@ -388,6 +747,11 @@ public class GameServiceImpl implements GameService {
                 playerRepository.save(player);
             }
         }
+    }
+
+    private boolean isPlayerTurn(Game game, Player player) {
+        Player currentPlayer = determineCurrentPlayer(game);
+        return currentPlayer != null && currentPlayer.getId().equals(player.getId());
     }
 
     private List<String> getPossibleActions(Game game, Player player) {
@@ -438,33 +802,94 @@ public class GameServiceImpl implements GameService {
         dto.setChips(player.getChips());
         dto.setStatus(player.getStatus().toString());
 
-        // Only show cards at showdown or to the player themselves
-        boolean showCards = game.getStatus() == GameStatus.FINISHED ||
+        // Check if this player is the current player to act
+        Player currentPlayer = determineCurrentPlayer(game);
+        dto.setTurn(currentPlayer != null && currentPlayer.getId().equals(player.getId()));
+
+        // Determine if cards should be visible:
+        // 1. For the game viewer (the player themselves)
+        // 2. At showdown (game finished or at river with betting completed)
+        User currentUser = null;
+        try {
+            currentUser = userService.getCurrentUser();
+        } catch (Exception e) {
+            // If we can't get current user, don't show cards
+        }
+
+        boolean isViewerPlayer = currentUser != null &&
+                player.getUserId().equals(currentUser.getId());
+
+        boolean isShowdown = game.getStatus() == GameStatus.FINISHED ||
                 (game.getCurrentRound() != null &&
                         game.getCurrentRound().getCurrentBettingRound() != null &&
-                        game.getCurrentRound().getCurrentBettingRound().getStage() == BettingStage.RIVER);
+                        game.getCurrentRound().getCurrentBettingRound().getStage() == BettingStage.RIVER &&
+                        isBettingRoundComplete(game.getCurrentRound().getCurrentBettingRound(), game));
 
-        // Compare player ID with current player ID, not user ID
-        Long currentPlayerId = getCurrentPlayerId();
-        if (player.getHand() != null && (showCards || player.getId().equals(currentPlayerId))) {
+        if (player.getHand() != null && (isViewerPlayer || isShowdown)) {
             List<CardDto> cards = player.getHand().getCards().stream()
                     .map(this::convertToCardDto)
                     .collect(Collectors.toList());
             dto.setCards(cards);
+        } else {
+            // Create hidden cards
+            List<CardDto> hiddenCards = new ArrayList<>();
+            if (player.getHand() != null) {
+                for (int i = 0; i < player.getHand().getCards().size(); i++) {
+                    CardDto hiddenCard = new CardDto();
+                    hiddenCard.setHidden(true);
+                    hiddenCards.add(hiddenCard);
+                }
+            }
+            dto.setCards(hiddenCards);
         }
 
         return dto;
     }
 
-    // In a real application, this would come from the security context
-    private Long getCurrentUserId() {
-        return 1L; // Placeholder
-    }
+    @Override
+    @Transactional
+    public Game endGame(Long gameId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
-    private Long getCurrentPlayerId() {
-        User currentUser = userService.getCurrentUser();
-        return playerRepository.findByUserId(currentUser.getId())
-                .map(Player::getId)
-                .orElse(null);
+        // If game is already finished, just return it
+        if (game.getStatus() == GameStatus.FINISHED) {
+            return game;
+        }
+
+        // Determine winners 
+        Map<Player, Double> winnings = determineWinners(game);
+
+        // Distribute winnings
+        for (Map.Entry<Player, Double> entry : winnings.entrySet()) {
+            Player winner = entry.getKey();
+            Double amount = entry.getValue();
+            winner.setChips(winner.getChips() + amount);
+            playerRepository.save(winner);
+
+            broadcastSystemMessage(game.getId(),
+                    winner.getUsername() + " wins $" + amount);
+        }
+
+        // Record all participants with zero winnings if they didn't win
+        for (Player player : game.getPokerTable().getPlayers()) {
+            if (!winnings.containsKey(player)) {
+                winnings.put(player, 0.0);
+            }
+        }
+
+        // Record game results for statistics
+        GameResult gameResult = statisticsService.recordGameResult(game, winnings);
+        statisticsService.updateUserStatistics(gameResult);
+
+        game.setStatus(GameStatus.FINISHED);
+        Game savedGame = gameRepository.save(game);
+
+        // Complete the replay
+        replayService.completeReplay(game.getId());
+
+        broadcastSystemMessage(game.getId(), "Game finished");
+
+        return savedGame;
     }
 }
