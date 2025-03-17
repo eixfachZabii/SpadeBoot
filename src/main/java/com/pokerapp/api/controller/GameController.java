@@ -68,8 +68,9 @@ public class GameController {
         Long userId = userService.getCurrentUser().getId();
 
         // Pass the user ID to the service, not the player ID
-        GameStateDto gameState = gameService.makeMove(gameId, userId, moveDto);
-        return ResponseEntity.ok(gameState);
+        //GameStateDto gameState = gameService.makeMove(gameId, userId, moveDto);
+        //return ResponseEntity.ok(gameState);
+        return null;
     }
 
     /**
@@ -101,7 +102,7 @@ public class GameController {
 
         // Find the player's userId
         playerRepository.findById(playerId).ifPresent(player -> {
-            gameService.makeMove(gameId, player.getUserId(), moveDto);
+            //gameService.makeMove(gameId, player.getUserId(), moveDto);
         });
 
         return ResponseEntity.ok(gameService.getGameState(gameId));

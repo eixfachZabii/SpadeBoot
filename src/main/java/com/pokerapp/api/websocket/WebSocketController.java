@@ -54,7 +54,8 @@ public class WebSocketController {
         Long userId = Long.parseLong(principal.getName());
 
         // Make the move and return updated game state
-        return gameService.makeMove(gameId, userId, moveDto);
+        //return gameService.makeMove(gameId, userId, moveDto);
+        return null;
     }
 
     /**
