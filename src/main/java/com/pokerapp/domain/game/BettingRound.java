@@ -39,11 +39,15 @@ public class BettingRound {
     @OneToMany(mappedBy = "bettingRound", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Move> moves = new ArrayList<>();
 
-    // The player who last raised the bet
-    @ManyToOne
-    private Player lastRaiser;
-
     public Set<Player> getPlayers() {
         return gameRound != null ? gameRound.getPlayers() : Collections.emptySet();
+    }
+
+    public double getPot() {
+        return gameRound != null ? gameRound.getPot() : 0;
+    }
+
+    public Integer getDealerIndex(){
+        return gameRound != null ? gameRound.getDealerIndex() : -1;
     }
 }

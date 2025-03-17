@@ -451,7 +451,7 @@ public class PokerappApplication {
 
                 try {
                     // Execute the move
-                    gameState = gameService.makeMove(gameId, currentUser.getId(), move);
+                    //gameState = gameService.makeMove(gameId, currentUser.getId(), move);
                     moveCount++;
                     System.out.println("DEBUG: Move " + moveCount + " executed successfully");
 

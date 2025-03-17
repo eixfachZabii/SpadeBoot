@@ -1,19 +1,15 @@
-package com.pokerapp.service.impl;
+package com.pokerapp.service.impl.logic;
 
 import com.pokerapp.domain.card.Card;
-import com.pokerapp.domain.card.Suit;
-import com.pokerapp.domain.card.c_Rank;
 import com.pokerapp.domain.game.GameRound;
 import com.pokerapp.domain.poker.HandEvaluator;
 import com.pokerapp.domain.poker.HandRank;
 import com.pokerapp.domain.user.Player;
-import com.pokerapp.domain.user.PlayerStatus;
 import com.pokerapp.service.HandEvaluationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class HandEvaluationServiceImpl implements HandEvaluationService {

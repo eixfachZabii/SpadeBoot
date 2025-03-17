@@ -54,18 +54,6 @@ public class PokerTable {
     @OneToOne(cascade = CascadeType.ALL)
     private Game currentGame;
 
-    public Game startNewGame() {
-        Game game = new Game();
-        game.setPokerTable(this);
-        game.setSmallBlind(minBuyIn / 100);
-        game.setBigBlind(minBuyIn / 50);
-
-        currentGame = game;
-        currentGame.start();
-
-        return currentGame;
-    }
-
     public boolean addPlayer(Player player, Double buyIn) {
 
         if(players.stream().anyMatch(p -> p.getUserId().equals(player.getUserId()))) {

@@ -4,8 +4,6 @@ import com.pokerapp.domain.card.Card;
 import com.pokerapp.domain.card.Suit;
 import com.pokerapp.domain.card.c_Rank;
 import com.pokerapp.domain.user.Player;
-import com.pokerapp.util.CardUtils;
-
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -97,12 +95,12 @@ public class HandEvaluator {
     }
 
     private boolean isFourOfAKind(List<Card> cards) {
-        Map<c_Rank, Long> rankCounts = CardUtils.getRankFrequency(cards);
+        Map<c_Rank, Long> rankCounts = getRankFrequency(cards);
         return rankCounts.values().stream().anyMatch(count -> count >= 4);
     }
 
     private boolean isFullHouse(List<Card> cards) {
-        Map<c_Rank, Long> rankCounts = CardUtils.getRankFrequency(cards);
+        Map<c_Rank, Long> rankCounts = getRankFrequency(cards);
         boolean hasThree = rankCounts.values().stream().anyMatch(count -> count >= 3);
         boolean hasPair = rankCounts.values().stream().anyMatch(count -> count >= 2);
 
@@ -164,18 +162,29 @@ public class HandEvaluator {
     }
 
     private boolean isThreeOfAKind(List<Card> cards) {
-        Map<c_Rank, Long> rankCounts = CardUtils.getRankFrequency(cards);
+        Map<c_Rank, Long> rankCounts = getRankFrequency(cards);
         return rankCounts.values().stream().anyMatch(count -> count >= 3);
     }
 
     private boolean isTwoPair(List<Card> cards) {
-        Map<c_Rank, Long> rankCounts = CardUtils.getRankFrequency(cards);
+        Map<c_Rank, Long> rankCounts = getRankFrequency(cards);
         long pairCount = rankCounts.values().stream().filter(count -> count >= 2).count();
         return pairCount >= 2;
     }
 
     private boolean isPair(List<Card> cards) {
-        Map<c_Rank, Long> rankCounts = CardUtils.getRankFrequency(cards);
+        Map<c_Rank, Long> rankCounts = getRankFrequency(cards);
         return rankCounts.values().stream().anyMatch(count -> count >= 2);
+    }
+
+    public static List<Card> sortByRank(List<Card> cards) {
+        return cards.stream()
+                .sorted(Comparator.comparing(card -> card.getCRank().getValue()))
+                .collect(Collectors.toList());
+    }
+
+    public static Map<c_Rank, Long> getRankFrequency(List<Card> cards) {
+        return cards.stream()
+                .collect(Collectors.groupingBy(Card::getCRank, Collectors.counting()));
     }
 }

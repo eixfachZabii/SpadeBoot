@@ -51,6 +51,10 @@ public class GameRound {
         return game != null ? game.getPlayers() : Collections.emptySet();
     }
 
+    public Integer getDealerIndex(){
+        return game != null ? game.getDealerIndex() : -1;
+    }
+
 
     /**
      * Deals community cards for the next stage (flop, turn, river)

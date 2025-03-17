@@ -1,8 +1,6 @@
 package com.pokerapp.domain.game;
 
-import com.pokerapp.domain.card.Card;
 import com.pokerapp.domain.card.Deck;
-import com.pokerapp.domain.card.Hand;
 import com.pokerapp.domain.user.Player;
 import com.pokerapp.domain.user.PlayerStatus;
 import jakarta.persistence.*;
@@ -24,7 +22,7 @@ public class Game {
 
     private Double bigBlind;
 
-    private Integer dealerPosition = 0;
+    private Integer dealerIndex = 0;
 
     @Enumerated(EnumType.STRING)
     private GameStatus status = GameStatus.WAITING;
@@ -42,25 +40,6 @@ public class Game {
     private GameRound currentRound;
 
     /**
-     * Starts the game, deals cards to players, and sets up the first betting round
-     */
-    public GameRound start() {
-        // Rotate dealer position
-        rotateDealerPosition();
-
-        // Create a new round
-        GameRound newRound = new GameRound();
-        newRound.setRoundNumber(gameRounds.size() + 1);
-        newRound.setGame(this);
-        newRound.setPot(0.0);
-
-        gameRounds.add(newRound);
-        currentRound = newRound;
-
-        return newRound;
-    }
-
-    /**
      * Rotates the dealer position for the next hand
      */
     public void rotateDealerPosition() {
@@ -72,7 +51,7 @@ public class Game {
         }
 
         if (!activePlayers.isEmpty()) {
-            dealerPosition = (dealerPosition + 1) % activePlayers.size();
+            dealerIndex = (dealerIndex + 1) % activePlayers.size();
         }
     }
 
