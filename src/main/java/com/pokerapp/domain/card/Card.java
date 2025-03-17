@@ -27,12 +27,4 @@ public class Card {
     public String toString() {
         return cRank + " of " + suit;
     }
-
-    public boolean isShowing() {
-        return isShowing;
-    }
-
-    public void setShowing(boolean showing) {
-        isShowing = showing;
-    }
 }

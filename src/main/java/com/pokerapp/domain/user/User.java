@@ -36,12 +36,6 @@ public class User {
     @Column(name = "role")
     private Set<String> roles = new HashSet<>();
 
-    @Version
-    private Long version;
-
-    @Enumerated(EnumType.STRING)
-    private UserType userType = UserType.REGULAR;
-
     public User() {
     }
 

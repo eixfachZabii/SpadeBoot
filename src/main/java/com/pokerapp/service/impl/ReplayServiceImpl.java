@@ -1,9 +1,10 @@
-// src/main/java/com/pokerapp/service/impl/ReplayServiceImpl.java
 package com.pokerapp.service.impl;
 
 import com.pokerapp.api.dto.response.GameActionDto;
 import com.pokerapp.api.dto.response.ReplayDto;
 import com.pokerapp.domain.game.Game;
+import com.pokerapp.domain.game.Move;
+import com.pokerapp.domain.replay.GameAction;
 import com.pokerapp.domain.replay.Replay;
 import com.pokerapp.exception.NotFoundException;
 import com.pokerapp.repository.ReplayRepository;
@@ -12,14 +13,13 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-//import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class ReplayServiceImpl implements ReplayService {
 
-    @Autowired
     private final ReplayRepository replayRepository;
 
     @Autowired
@@ -28,11 +28,59 @@ public class ReplayServiceImpl implements ReplayService {
     }
 
     @Override
-   // @Transactional
+    @Transactional
     public Replay createReplay(Game game) {
+        if (game == null || game.getId() == null) {
+            throw new IllegalArgumentException("Game must be saved before creating a replay");
+        }
+
+        // Check if a replay already exists for this game
+        Optional<Replay> existingReplay = replayRepository.findByGameId(game.getId());
+        if (existingReplay.isPresent()) {
+            return existingReplay.get();
+        }
+
+        // Create a new replay only if one doesn't exist
         Replay replay = new Replay();
         replay.setGame(game);
         return replayRepository.save(replay);
+    }
+
+    @Override
+    @Transactional
+    public Replay getOrCreateReplay(Game game) {
+        if (game == null || game.getId() == null) {
+            throw new IllegalArgumentException("Game must be saved before accessing replay");
+        }
+
+        return replayRepository.findByGameId(game.getId())
+                .orElseGet(() -> {
+                    Replay newReplay = new Replay();
+                    newReplay.setGame(game);
+                    return replayRepository.save(newReplay);
+                });
+    }
+
+    @Override
+    @Transactional
+    public void recordMove(Game game, Move move) {
+        if (game == null || game.getId() == null || move == null) {
+            return; // Skip recording if not valid
+        }
+
+        try {
+            Replay replay = getOrCreateReplay(game);
+
+            GameAction action = GameAction.fromMove(move, replay.getActionCounter() + 1);
+            action.setReplay(replay);
+            replay.getActions().add(action);
+            replay.setActionCounter(replay.getActionCounter() + 1);
+
+            replayRepository.save(replay);
+        } catch (Exception e) {
+            // Log but don't fail the operation
+            System.err.println("Error recording move: " + e.getMessage());
+        }
     }
 
     @Override
@@ -45,9 +93,7 @@ public class ReplayServiceImpl implements ReplayService {
 
     @Override
     public List<ReplayDto> getReplaysByUser(Long userId) {
-        // Implementation would depend on how you store the relationship between replays and users
-        // This is a simplified example
-        //TODO
+        // Implementation depends on how you store the relationship between replays and users
         return replayRepository.findAll().stream()
                 .filter(r -> r.getGame().getPokerTable().getPlayers().stream()
                         .anyMatch(p -> p.getUserId().equals(userId)))
