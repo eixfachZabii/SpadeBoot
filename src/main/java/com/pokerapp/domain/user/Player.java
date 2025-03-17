@@ -114,6 +114,14 @@ public class Player {
     }
 
     /**
+     * Checks if the player is "all out" (not participating in the game)
+     * @return true if the player is sitting out or has left the table
+     */
+    public boolean isAllOut() {
+        return status == PlayerStatus.SITTING_OUT || currentTableId == null;
+    }
+
+    /**
      * Gets the total amount the player has bet in the current round
      * @return the total bet amount
      */
