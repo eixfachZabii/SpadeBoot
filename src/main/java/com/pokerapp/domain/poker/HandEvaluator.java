@@ -73,9 +73,12 @@ public class HandEvaluator {
 
     // Hand evaluation methods
     private boolean isRoyalFlush(List<Card> cards) {
-        return isStraightFlush(cards) && cards.stream()
-                .anyMatch(card -> card.getCRank() == c_Rank.ACE);
-        //Kriminell falsch TODO: lower straight flush von A bis 5 z.b.
+        if (!isStraightFlush(cards)) {
+            return false;
+        }
+        // Prüfen, ob die Karten genau A, K, Q, J, 10 enthalten
+        Set<c_Rank> royalRanks = Set.of(c_Rank.ACE, c_Rank.KING, c_Rank.QUEEN, c_Rank.JACK, c_Rank.TEN);
+        return cards.stream().map(Card::getCRank).collect(Collectors.toSet()).equals(royalRanks);
     }
 
     private boolean isStraightFlush(List<Card> cards) {

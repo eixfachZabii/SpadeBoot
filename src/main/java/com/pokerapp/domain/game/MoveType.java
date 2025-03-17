@@ -2,5 +2,5 @@
 package com.pokerapp.domain.game;
 
 public enum MoveType {
-    CHECK, CALL, RAISE, FOLD, ALL_IN
+    CHECK, CALL, RAISE, FOLD, ALL_IN, SMALL_BLIND, BIG_BLIND
 }

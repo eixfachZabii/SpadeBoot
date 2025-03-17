@@ -35,7 +35,7 @@ public class PokerTable {
     @ManyToOne
     private Player owner;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "poker_tables_players",
             joinColumns = @JoinColumn(name = "poker_table_id"),
@@ -61,9 +61,9 @@ public class PokerTable {
         game.setBigBlind(minBuyIn / 50);
 
         currentGame = game;
-        game.start();
+        currentGame.start();
 
-        return game;
+        return currentGame;
     }
 
     public boolean addPlayer(Player player, Double buyIn) {

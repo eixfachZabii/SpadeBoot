@@ -2,11 +2,7 @@ package com.pokerapp.service.impl;
 
 import com.pokerapp.api.dto.request.LoginDto;
 import com.pokerapp.api.dto.request.RegisterDto;
-import com.pokerapp.domain.card.Hand;
-import com.pokerapp.domain.user.Player;
-import com.pokerapp.domain.user.PlayerStatus;
 import com.pokerapp.domain.user.User;
-import com.pokerapp.domain.user.UserType;
 import com.pokerapp.exception.NotFoundException;
 import com.pokerapp.repository.PlayerRepository;
 import com.pokerapp.repository.UserRepository;
@@ -52,7 +48,6 @@ public class UserServiceImpl implements UserService {
         user.setEmail(registerDto.getEmail());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         user.setBalance(1000.0); // Default starting balance
-        user.setUserType(UserType.REGULAR);
         user.addRole("USER");
 
         return userRepository.save(user);
@@ -61,6 +56,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String authenticate(LoginDto loginDto) {
         // Authentication logic
+        //TODO
         return "";
     }
 

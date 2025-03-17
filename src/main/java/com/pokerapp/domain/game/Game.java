@@ -1,15 +1,15 @@
-// src/main/java/com/pokerapp/domain/game/Game.java
 package com.pokerapp.domain.game;
 
+import com.pokerapp.domain.card.Card;
 import com.pokerapp.domain.card.Deck;
 import com.pokerapp.domain.card.Hand;
 import com.pokerapp.domain.user.Player;
+import com.pokerapp.domain.user.PlayerStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Getter
 @Setter
@@ -35,61 +35,48 @@ public class Game {
     @OneToOne(cascade = CascadeType.ALL)
     private Deck deck = new Deck();
 
-    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<GameRound> gameRounds = new ArrayList<>();
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     private GameRound currentRound;
 
-    public Game(){
-    }
+    /**
+     * Starts the game, deals cards to players, and sets up the first betting round
+     */
+    public GameRound start() {
+        // Rotate dealer position
+        rotateDealerPosition();
 
-    public void start() {
-        if (status != GameStatus.WAITING) {
-            throw new IllegalStateException("Game already started");
-        }
+        // Create a new round
+        GameRound newRound = new GameRound();
+        newRound.setRoundNumber(gameRounds.size() + 1);
+        newRound.setGame(this);
+        newRound.setPot(0.0);
 
-        status = GameStatus.STARTING;
-        deck.initialize();
-        deck.shuffle();
+        gameRounds.add(newRound);
+        currentRound = newRound;
 
-        // Deal cards to players
-        dealPlayerCards();
-
-        // Create first round
-        GameRound firstRound = new GameRound();
-        firstRound.setRoundNumber(1);
-        firstRound.setGame(this);
-        gameRounds.add(firstRound);
-        currentRound = firstRound;
-
-        // Start with preflop betting
-        currentRound.advanceToNextBettingRound();
-
-        status = GameStatus.IN_PROGRESS;
-    }
-
-    private void dealPlayerCards() {
-        for (Player player : pokerTable.getPlayers()) {
-            if (player.getHand() == null) {
-                player.setHand(new Hand());
-            } else {
-                player.getHand().clear();
-            }
-
-            // Each player gets 2 cards
-            player.getHand().addCard(deck.drawCard());
-            player.getHand().addCard(deck.drawCard());
-        }
+        return newRound;
     }
 
     /**
-     * Determines the winners of the current game round
-     * @return List of players who are winners
+     * Rotates the dealer position for the next hand
      */
-    public List<Player> determineWinner() {
-        // Implement winner determination logic using HandEvaluator
-        //TODO
-        return new ArrayList<>(); // Placeholder
+    public void rotateDealerPosition() {
+        List<Player> activePlayers = new ArrayList<>();
+        for (Player player : pokerTable.getPlayers()) {
+            if (player.getStatus() == PlayerStatus.ACTIVE || player.getStatus() == PlayerStatus.SITTING_OUT) {
+                activePlayers.add(player);
+            }
+        }
+
+        if (!activePlayers.isEmpty()) {
+            dealerPosition = (dealerPosition + 1) % activePlayers.size();
+        }
+    }
+
+    public Set<Player> getPlayers() {
+        return pokerTable != null ? pokerTable.getPlayers() : Collections.emptySet();
     }
 }
