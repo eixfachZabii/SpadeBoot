@@ -82,16 +82,22 @@ public class BettingRoundService {
 
     @Transactional
     public BettingRound playBettingRound(Long bettingRoundId) {
+        // Fetch the betting round
         BettingRound bettingRound = bettingRoundRepository.findById(bettingRoundId)
                 .orElseThrow(() -> new NotFoundException("BettingRound not found with ID: " + bettingRoundId));
 
+        // Get parent objects
         GameRound gameRound = bettingRound.getGameRound();
         Game game = gameRound.getGame();
 
         // Get players, pot and current bet
-        List<Player> players = game.getPlayers().stream().filter(p -> !p.getStatus().equals(PlayerStatus.SITTING_OUT)).toList();
-        Set<Player> activePlayers = players.stream().filter(p -> p.getStatus().equals(PlayerStatus.ACTIVE)).collect(Collectors.toSet());
-        Set<Player> foldedPlayers = players.stream().filter(p -> p.getStatus().equals(PlayerStatus.FOLDED)).collect(Collectors.toSet());
+        List<Player> players = new ArrayList<>(game.getPlayers().stream().filter(p -> !p.getStatus().equals(PlayerStatus.SITTING_OUT)).toList());
+        Set<Player> activePlayers = players.stream()
+                .filter(p -> p.getStatus().equals(PlayerStatus.ACTIVE))
+                .collect(Collectors.toSet());
+        Set<Player> foldedPlayers = players.stream()
+                .filter(p -> p.getStatus().equals(PlayerStatus.FOLDED))
+                .collect(Collectors.toSet());
 
         double pot = gameRound.getPot();
         double currentBet = bettingRound.getCurrentBet();
@@ -107,7 +113,7 @@ public class BettingRoundService {
             playerBets.put(player.getUsername(), 0.0);
         }
 
-        // Process blinds for preflop
+        // Process blinds for preFlop
         if (bettingRound.getStage() == BettingStage.PREFLOP) {
             // Post small blind
             Player smallBlindPlayer = players.get(smallBlindIndex);
@@ -208,6 +214,8 @@ public class BettingRoundService {
                         String message = player.getUsername() + " folds.";
                         broadcastGameMessage(game.getId(), message);
 
+                        // No need to call playerRepository.save() - JPA will track the changes automatically
+
                         actionProcessed = true;
                     }
                     else if (moveDto.getType().equals("CHECK")) {
@@ -251,6 +259,8 @@ public class BettingRoundService {
                             move.setBettingRound(bettingRound);
                             bettingRound.getMoves().add(move);
 
+                            // No need to call playerRepository.save() - JPA will track the changes automatically
+
                             // Log and broadcast the action
                             String message = player.getUsername() + " calls " + toCall + ".";
                             broadcastGameMessage(game.getId(), message);
@@ -291,6 +301,8 @@ public class BettingRoundService {
                             move.setPlayer(player);
                             move.setBettingRound(bettingRound);
                             bettingRound.getMoves().add(move);
+
+                            // No need to call playerRepository.save() - JPA will track the changes automatically
 
                             // Log and broadcast the action
                             String message = player.getUsername() + " raises to " + currentBet + ".";
@@ -341,6 +353,8 @@ public class BettingRoundService {
                         move.setBettingRound(bettingRound);
                         bettingRound.getMoves().add(move);
 
+                        // No need to call playerRepository.save() - JPA will track the changes automatically
+
                         // Log and broadcast the action
                         String message = player.getUsername() + " goes all-in for " + allInAmount + ".";
                         broadcastGameMessage(game.getId(), message);
@@ -360,9 +374,8 @@ public class BettingRoundService {
             }
         }
 
-        // Save the final state of the betting round
-        //bettingRound = bettingRoundRepository.save(bettingRound);
-        //gameRoundRepository.save(gameRound);
+        // No need to explicitly save anything - JPA will handle all the changes automatically
+        // when the @Transactional method completes
 
         // Log the end of the betting round
         String roundCompleteMessage = "Betting round complete: " + bettingRound.getStage() + ". Pot: " + pot;
