@@ -8,6 +8,7 @@ import com.pokerapp.domain.poker.HandResult;
 import com.pokerapp.domain.poker.WinnerDeterminer;
 import com.pokerapp.domain.user.Player;
 import com.pokerapp.service.HandEvaluationService;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -231,6 +232,7 @@ public class HandEvaluationServiceImpl implements HandEvaluationService {
      * Helper class to represent a side pot in a poker game.
      */
     private static class SidePot {
+        @Getter
         private final double amount;
         private final List<Player> eligiblePlayers;
         private final double maxBetAmount;
@@ -239,10 +241,6 @@ public class HandEvaluationServiceImpl implements HandEvaluationService {
             this.amount = amount;
             this.eligiblePlayers = eligiblePlayers;
             this.maxBetAmount = maxBetAmount;
-        }
-
-        public double getAmount() {
-            return amount;
         }
 
         public boolean isPlayerEligible(Player player) {
