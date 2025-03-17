@@ -1,135 +1,312 @@
-// src/main/java/com/pokerapp/service/impl/InvitationServiceImpl.java
 package com.pokerapp.service.impl;
 
-import com.pokerapp.api.dto.request.InvitationRequestDto;
-import com.pokerapp.api.dto.response.InvitationDto;
-import com.pokerapp.domain.invitation.Invitation;
-import com.pokerapp.domain.invitation.InvitationStatus;
-import com.pokerapp.domain.user.User;
-import com.pokerapp.exception.NotFoundException;
-import com.pokerapp.repository.InvitationRepository;
-import com.pokerapp.repository.UserRepository;
-import com.pokerapp.service.InvitationService;
-import com.pokerapp.service.TableService;
-import jakarta.transaction.Transactional;
+import com.pokerapp.domain.card.Card;
+import com.pokerapp.domain.game.GameRound;
+import com.pokerapp.domain.poker.HandEvaluator;
+import com.pokerapp.domain.poker.HandRank;
+import com.pokerapp.domain.poker.HandResult;
+import com.pokerapp.domain.poker.WinnerDeterminer;
+import com.pokerapp.domain.user.Player;
+import com.pokerapp.service.HandEvaluationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-//import javax.transaction.Transactional;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class InvitationServiceImpl implements InvitationService {
+public class HandEvaluationServiceImpl implements HandEvaluationService {
+    private static final Logger logger = LoggerFactory.getLogger(HandEvaluationServiceImpl.class);
+
+    private final HandEvaluator handEvaluator;
 
     @Autowired
-    private final InvitationRepository invitationRepository;
-
-    @Autowired
-    private final UserRepository userRepository;
-
-    @Autowired
-    private final TableService tableService;
-
-    @Autowired
-    public InvitationServiceImpl(
-            InvitationRepository invitationRepository,
-            UserRepository userRepository,
-            TableService tableService) {
-        this.invitationRepository = invitationRepository;
-        this.userRepository = userRepository;
-        this.tableService = tableService;
+    public HandEvaluationServiceImpl(HandEvaluator handEvaluator) {
+        this.handEvaluator = handEvaluator;
     }
 
     @Override
-    @Transactional
-    public Invitation createInvitation(InvitationRequestDto requestDto, User sender) {
-        // Verify the recipient exists
-        User recipient = userRepository.findById(requestDto.getRecipientId())
-                .orElseThrow(() -> new NotFoundException("Recipient not found"));
+    public HandRank evaluateHand(List<Card> playerCards, List<Card> communityCards) {
+        if (playerCards == null || communityCards == null) {
+            throw new IllegalArgumentException("Player cards and community cards cannot be null");
+        }
 
-        // Verify the table exists
-        tableService.getTableById(requestDto.getTableId());
+        // Ensure we have enough cards to evaluate a hand (minimum 5 total)
+        if (playerCards.size() + communityCards.size() < 5) {
+            throw new IllegalArgumentException("Insufficient cards for hand evaluation. Need at least 5 cards in total.");
+        }
 
-        // Create and save the invitation
-        Invitation invitation = new Invitation();
-        invitation.setSender(sender);
-        invitation.setRecipient(recipient);
-        invitation.setTableId(requestDto.getTableId());
-        invitation.setMessage(requestDto.getMessage());
+        // Verify there are no duplicate cards
+        List<Card> allCards = new ArrayList<>(playerCards);
+        allCards.addAll(communityCards);
+        if (hasDuplicateCards(allCards)) {
+            throw new IllegalArgumentException("Duplicate cards found in hand evaluation");
+        }
 
-        return invitationRepository.save(invitation);
+        // Delegate to the HandEvaluator for comprehensive hand evaluation
+        HandResult result = handEvaluator.evaluateBestHand(playerCards, communityCards);
+        return result.getHandRank();
     }
 
     @Override
-    public List<InvitationDto> getPendingInvitationsForUser(User user) {
-        return invitationRepository.findByRecipientAndStatus(user, InvitationStatus.PENDING)
-                .stream()
-                .map(this::convertToDto)
+    public Map<Player, Double> determineWinners(GameRound gameRound) {
+        // Get community cards from the game round
+        List<Card> communityCards = gameRound.getCommunityCards();
+
+        // Filter for active players who still have valid hands
+        List<Player> activePlayers = gameRound.getGame().getPokerTable().getPlayers().stream()
+                .filter(this::isPlayerActive)
                 .collect(Collectors.toList());
+
+        if (activePlayers.isEmpty()) {
+            logger.warn("No active players found for winner determination");
+            return Collections.emptyMap();
+        }
+
+        // If only one active player remains, they win the entire pot
+        if (activePlayers.size() == 1) {
+            Player winner = activePlayers.get(0);
+            Map<Player, Double> winnings = new HashMap<>();
+            winnings.put(winner, gameRound.getPot());
+            logger.info("Single active player {} wins pot of ${}", winner.getUsername(), gameRound.getPot());
+            return winnings;
+        }
+
+        // Create a WinnerDeterminer with the community cards
+        WinnerDeterminer winnerDeterminer = new WinnerDeterminer(communityCards);
+
+        // Prepare player hands for comparison
+        Map<String, List<Card>> playerHandsMap = new HashMap<>();
+        Map<String, Player> playerIdMap = new HashMap<>();
+
+        for (Player player : activePlayers) {
+            String playerId = player.getId().toString();
+            playerHandsMap.put(playerId, player.getHand().getCards());
+            playerIdMap.put(playerId, player);
+        }
+
+        // Determine winners
+        List<WinnerDeterminer.WinnerResult> winnerResults = winnerDeterminer.determineWinners(playerHandsMap);
+
+        // Calculate pot distribution handling all-in scenarios and side pots
+        Map<Player, Double> winnings = calculateComplexPotDistribution(gameRound, winnerResults, playerIdMap, activePlayers);
+
+        // Log winner details for debugging
+        logWinnerDetails(winnerResults, winnings, playerIdMap);
+
+        return winnings;
     }
 
-    @Override
-    public List<InvitationDto> getSentInvitationsForUser(User user) {
-        return invitationRepository.findBySenderAndStatus(user, InvitationStatus.PENDING)
-                .stream()
-                .map(this::convertToDto)
+    /**
+     * Checks if a player is active and eligible for hand evaluation.
+     *
+     * @param player The player to check
+     * @return True if the player is active and has a valid hand
+     */
+    private boolean isPlayerActive(Player player) {
+        return player != null
+                && player.getHand() != null
+                && player.getHand().getCards() != null
+                && player.getHand().getCards().size() == 2  // In Texas Hold'em, players have 2 hole cards
+                && !player.isFolded()
+                && !player.isAllOut();
+    }
+
+    /**
+     * Calculates the pot distribution among winners, handling all scenarios including side pots.
+     *
+     * @param gameRound The current game round
+     * @param winnerResults The list of winner results
+     * @param playerIdMap Map of player IDs to Player objects
+     * @param activePlayers List of all active players
+     * @return Map of players to their winnings
+     */
+    private Map<Player, Double> calculateComplexPotDistribution(
+            GameRound gameRound,
+            List<WinnerDeterminer.WinnerResult> winnerResults,
+            Map<String, Player> playerIdMap,
+            List<Player> activePlayers) {
+
+        Map<Player, Double> winnings = new HashMap<>();
+
+        if (winnerResults.isEmpty()) {
+            logger.warn("No winners determined for pot distribution");
+            return winnings;
+        }
+
+        // Convert winner results to Player objects
+        List<Player> winners = winnerResults.stream()
+                .map(result -> playerIdMap.get(result.getPlayerId()))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+
+        // Handle all-in scenarios and side pots
+        List<SidePot> sidePots = calculateSidePots(gameRound, activePlayers);
+
+        if (sidePots.isEmpty()) {
+            // No side pots, simple distribution
+            double winningsPerPlayer = gameRound.getPot() / winners.size();
+            winners.forEach(winner -> winnings.put(winner, winningsPerPlayer));
+        } else {
+            // Process each side pot
+            for (SidePot sidePot : sidePots) {
+                // Find eligible winners for this side pot
+                List<Player> eligibleWinners = winners.stream()
+                        .filter(sidePot::isPlayerEligible)
+                        .collect(Collectors.toList());
+
+                if (!eligibleWinners.isEmpty()) {
+                    double winningsPerEligiblePlayer = sidePot.getAmount() / eligibleWinners.size();
+                    for (Player eligibleWinner : eligibleWinners) {
+                        winnings.put(eligibleWinner,
+                                winnings.getOrDefault(eligibleWinner, 0.0) + winningsPerEligiblePlayer);
+                    }
+                } else {
+                    // No eligible winners for this side pot (rare case)
+                    logger.warn("No eligible winners for side pot of ${}", sidePot.getAmount());
+                }
+            }
+        }
+
+        return winnings;
     }
 
-    @Override
-    //@Transactional
-    public InvitationDto acceptInvitation(Long invitationId, User user) {
-        Invitation invitation = invitationRepository.findById(invitationId)
-                .orElseThrow(() -> new NotFoundException("Invitation not found"));
-
-        if (!invitation.getRecipient().getId().equals(user.getId())) {
-            throw new IllegalStateException("This invitation is not for you");
+    /**
+     * Calculates side pots based on player bets.
+     *
+     * @param gameRound The current game round
+     * @param activePlayers The list of active players
+     * @return A list of side pots, ordered from smallest to largest bet amount
+     */
+    private List<SidePot> calculateSidePots(GameRound gameRound, List<Player> activePlayers) {
+        // Check if we need side pots
+        boolean hasAllInPlayers = activePlayers.stream().anyMatch(Player::isAllIn);
+        if (!hasAllInPlayers) {
+            // No all-in players, just main pot
+            return Collections.singletonList(new SidePot(gameRound.getPot(), activePlayers, Double.MAX_VALUE));
         }
 
-        if (invitation.getStatus() != InvitationStatus.PENDING) {
-            throw new IllegalStateException("Invitation is not pending");
+        // Sort players by their total bet amount
+        List<Player> sortedPlayers = new ArrayList<>(activePlayers);
+        sortedPlayers.sort(Comparator.comparingDouble(Player::getTotalBet));
+
+        List<SidePot> sidePots = new ArrayList<>();
+        double previousBetAmount = 0;
+        double remainingPot = gameRound.getPot();
+
+        // Calculate side pots
+        for (int i = 0; i < sortedPlayers.size(); i++) {
+            Player currentPlayer = sortedPlayers.get(i);
+            double currentBetAmount = currentPlayer.getTotalBet();
+
+            // Skip players with the same bet as previous player
+            if (currentBetAmount <= previousBetAmount) {
+                continue;
+            }
+
+            // Calculate pot contribution from the difference in bet amounts
+            double potContribution = (currentBetAmount - previousBetAmount) * i;
+
+            if (potContribution > 0) {
+                // Create a side pot for players who at least matched this bet
+                List<Player> eligiblePlayers = sortedPlayers.subList(i, sortedPlayers.size());
+                sidePots.add(new SidePot(potContribution, eligiblePlayers, currentBetAmount));
+                remainingPot -= potContribution;
+            }
+
+            previousBetAmount = currentBetAmount;
         }
 
-        if (invitation.isExpired()) {
-            invitation.setStatus(InvitationStatus.EXPIRED);
-            return convertToDto(invitationRepository.save(invitation));
+        // Add the main pot (contains all remaining chips)
+        if (remainingPot > 0) {
+            sidePots.add(new SidePot(remainingPot, sortedPlayers, Double.MAX_VALUE));
         }
 
-        invitation.setStatus(InvitationStatus.ACCEPTED);
-        return convertToDto(invitationRepository.save(invitation));
+        return sidePots;
     }
 
-    @Override
-    //@Transactional
-    public InvitationDto declineInvitation(Long invitationId, User user) {
-        Invitation invitation = invitationRepository.findById(invitationId)
-                .orElseThrow(() -> new NotFoundException("Invitation not found"));
+    /**
+     * Helper class to represent a side pot in a poker game.
+     */
+    private static class SidePot {
+        private final double amount;
+        private final List<Player> eligiblePlayers;
+        private final double maxBetAmount;
 
-        if (!invitation.getRecipient().getId().equals(user.getId())) {
-            throw new IllegalStateException("This invitation is not for you");
+        public SidePot(double amount, List<Player> eligiblePlayers, double maxBetAmount) {
+            this.amount = amount;
+            this.eligiblePlayers = eligiblePlayers;
+            this.maxBetAmount = maxBetAmount;
         }
 
-        if (invitation.getStatus() != InvitationStatus.PENDING) {
-            throw new IllegalStateException("Invitation is not pending");
+        public double getAmount() {
+            return amount;
         }
 
-        invitation.setStatus(InvitationStatus.DECLINED);
-        return convertToDto(invitationRepository.save(invitation));
+        public boolean isPlayerEligible(Player player) {
+            return eligiblePlayers.contains(player) && player.getTotalBet() >= maxBetAmount;
+        }
     }
 
-    private InvitationDto convertToDto(Invitation invitation) {
-        InvitationDto dto = new InvitationDto();
-        dto.setId(invitation.getId());
-        dto.setSenderId(invitation.getSender().getId());
-        dto.setSenderName(invitation.getSender().getUsername());
-        dto.setRecipientId(invitation.getRecipient().getId());
-        dto.setRecipientName(invitation.getRecipient().getUsername());
-        dto.setTableId(invitation.getTableId());
-        dto.setStatus(invitation.getStatus().toString());
-        dto.setMessage(invitation.getMessage());
-        dto.setCreatedAt(invitation.getCreatedAt().toString());
-        dto.setExpiresAt(invitation.getExpiresAt().toString());
-        return dto;
+    /**
+     * Logs detailed information about the winners for debugging purposes.
+     *
+     * @param winnerResults The list of winner results
+     * @param winnings Map of players to their winnings
+     * @param playerIdMap Map of player IDs to Player objects
+     */
+    private void logWinnerDetails(
+            List<WinnerDeterminer.WinnerResult> winnerResults,
+            Map<Player, Double> winnings,
+            Map<String, Player> playerIdMap) {
+
+        logger.info("Winner determination completed with {} winner(s)", winnerResults.size());
+
+        for (WinnerDeterminer.WinnerResult result : winnerResults) {
+            Player winner = playerIdMap.get(result.getPlayerId());
+            if (winner != null) {
+                logger.info("Winner: {} (ID: {})", winner.getUsername(), winner.getId());
+                logger.info("  Hand: {}", result.getHandResult());
+                logger.info("  Winnings: ${}", winnings.get(winner));
+
+                // Log the cards that make up the winning hand
+                List<Card> winningCards = result.getHandResult().getBestCards();
+                String cards = winningCards.stream()
+                        .map(Card::toString)
+                        .collect(Collectors.joining(", "));
+                logger.info("  Winning Cards: {}", cards);
+            }
+        }
+    }
+
+    /**
+     * Checks if the list of cards contains any duplicates.
+     *
+     * @param cards The list of cards to check
+     * @return true if duplicates are found, false otherwise
+     */
+    private boolean hasDuplicateCards(List<Card> cards) {
+        Set<String> uniqueCards = new HashSet<>();
+        for (Card card : cards) {
+            String cardKey = card.getCRank() + "-" + card.getSuit();
+            if (!uniqueCards.add(cardKey)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Calculate hand strength as a numerical value for comparison.
+     * Lower values indicate stronger hands.
+     *
+     * @param handRank The hand rank to evaluate
+     * @return A numerical value representing hand strength
+     */
+    private int calculateHandStrength(HandRank handRank) {
+        // HandRank enum values are already ordered from strongest to weakest
+        return handRank.getValue();
     }
 }
