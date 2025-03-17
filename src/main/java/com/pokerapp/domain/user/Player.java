@@ -52,6 +52,10 @@ public class Player {
     @Transient
     private Double winProbability = 0.0;
 
+    // Tracks the total bet amount for the current round
+    @Transient
+    private Double totalBet = 0.0;
+
     /**
      * Default constructor
      */
@@ -94,6 +98,51 @@ public class Player {
     }
 
     /**
+     * Checks if the player is all-in (has bet all their chips)
+     * @return true if the player has no chips left and is still in the game
+     */
+    public boolean isAllIn() {
+        return status == PlayerStatus.ACTIVE && (chips == null || chips <= 0.0);
+    }
+
+    /**
+     * Checks if the player has folded
+     * @return true if the player's status is FOLDED
+     */
+    public boolean isFolded() {
+        return status == PlayerStatus.FOLDED;
+    }
+
+    /**
+     * Gets the total amount the player has bet in the current round
+     * @return the total bet amount
+     */
+    public Double getTotalBet() {
+        return totalBet != null ? totalBet : 0.0;
+    }
+
+    /**
+     * Add to the player's total bet for the current round
+     * @param amount Amount to add to the total bet
+     */
+    public void addToTotalBet(Double amount) {
+        if (amount != null && amount > 0) {
+            if (this.totalBet == null) {
+                this.totalBet = amount;
+            } else {
+                this.totalBet += amount;
+            }
+        }
+    }
+
+    /**
+     * Resets the player's total bet for a new round
+     */
+    public void resetTotalBet() {
+        this.totalBet = 0.0;
+    }
+
+    /**
      * Rebuys chips from the player's balance
      * @param amount Amount to rebuy
      */
@@ -122,6 +171,7 @@ public class Player {
         this.chips = 0.0;
         this.currentTableId = null;
         this.status = PlayerStatus.SITTING_OUT;
+        this.totalBet = 0.0;
 
         // Clear cards if any
         if (this.hand != null) {
