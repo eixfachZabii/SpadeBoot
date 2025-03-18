@@ -11,7 +11,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface BettingRoundRepository extends JpaRepository<BettingRound, Long> {
-    List<Game> findByStatus(GameStatus status);
 
     @Query("SELECT b from BettingRound b WHERE b.gameRound.id = ?1")
     GameRound findByGameId(Long gameRoundId);

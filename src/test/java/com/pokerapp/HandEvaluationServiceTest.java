@@ -12,7 +12,6 @@ import com.pokerapp.domain.poker.WinnerDeterminer;
 import com.pokerapp.domain.user.Player;
 import com.pokerapp.domain.user.User;
 import com.pokerapp.service.HandEvaluationService;
-import com.pokerapp.service.impl.logic.HandEvaluationServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
