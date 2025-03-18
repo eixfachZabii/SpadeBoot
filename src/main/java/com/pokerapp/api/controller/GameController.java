@@ -6,6 +6,7 @@ import com.pokerapp.domain.game.Game;
 import com.pokerapp.repository.PlayerRepository;
 import com.pokerapp.service.GameService;
 import com.pokerapp.service.UserService;
+import com.pokerapp.service.impl.logic.GameServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,6 +44,13 @@ public class GameController {
     @PostMapping("/{gameId}/start")
     public ResponseEntity<GameStateDto> startGame(@PathVariable Long gameId) {
         gameService.startGame(gameId);
+        GameStateDto gameState = gameService.getGameState(gameId);
+        return ResponseEntity.ok(gameState);
+    }
+
+    @PostMapping("/{gameId}/next-round")
+    public ResponseEntity<GameStateDto> startNextRound(@PathVariable Long gameId) {
+        ((GameServiceImpl) gameService).startNextRound(gameId);
         GameStateDto gameState = gameService.getGameState(gameId);
         return ResponseEntity.ok(gameState);
     }

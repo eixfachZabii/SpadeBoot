@@ -21,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Service
 public class GameServiceImpl implements GameService {
 
@@ -79,9 +81,8 @@ public class GameServiceImpl implements GameService {
         game.setBigBlind(pokerTable.getMaxBuyIn() / 100);
 
         Deck deck = new Deck();
-        deck.initialize();
         game.setDeck(deck);
-
+        game.setManualMode(true); //TODO
 
         game = gameRepository.save(game);
 
@@ -99,14 +100,66 @@ public class GameServiceImpl implements GameService {
     @Override
     @Transactional
     public void startGame(Long gameId) {
-        Game game = gameRepository.findById(gameId).orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
-        game.setStatus(GameStatus.IN_PROGRESS);
-        boolean success = true;
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
-        while(game.getStatus() == GameStatus.IN_PROGRESS && success) {
+        if (game.getStatus() == GameStatus.WAITING) {
+            // Update game status
+            game.setStatus(GameStatus.IN_PROGRESS);
+            gameRepository.save(game);
+
+            // Start the first round
             GameRound gameRound = gameRoundService.createGameRound(gameId);
             gameRoundService.startGameRound(gameRound.getId());
+
+            // Broadcast the game state update to clients
+            //broadcastGameStateUpdate(game);
+        } else {
+            throw new IllegalStateException("Game must be in WAITING state to start");
         }
+    }
+
+    // Add this new method to advance to the next round
+    @Transactional
+    public void startNextRound(Long gameId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
+
+        if (game.getStatus() != GameStatus.IN_PROGRESS) {
+            throw new IllegalStateException("Game must be in IN_PROGRESS state to start next round");
+        }
+
+        // Check if we should end the game (e.g., only one player left with chips)
+        if (shouldEndGame(game)) {
+            endGame(gameId);
+            return;
+        }
+
+        // Rotate dealer position for the next round
+        game.rotateDealerPosition();
+        gameRepository.save(game);
+
+        // Create and start a new round
+        GameRound gameRound = gameRoundService.createGameRound(gameId);
+        gameRoundService.startGameRound(gameRound.getId());
+
+        // Broadcast the updated game state
+        //broadcastGameStateUpdate(game);
+    }
+
+    private boolean shouldEndGame(Game game) {
+        // Logic to determine if the game should end
+        // For example, only one player left with chips
+        long playersWithChips = game.getPlayers().stream()
+                .filter(player -> player.getChips() > 0)
+                .count();
+
+        return playersWithChips <= 1;
+    }
+
+    private void broadcastGameStateUpdate(Game game) {
+        GameStateDto gameState = getGameState(game.getId());
+        messagingTemplate.convertAndSend("/topic/games/" + game.getId(), gameState);
     }
 
 
@@ -120,5 +173,19 @@ public class GameServiceImpl implements GameService {
         Game game = gameRepository.findById(gameId).orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
         game.setStatus(GameStatus.FINISHED);
         return game;
+    }
+
+    @Override
+    @Transactional
+    public void setGameMode(Long gameId, boolean manualMode) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
+
+        game.setManualMode(manualMode);
+        gameRepository.save(game);
+
+        // Broadcast game mode change to clients
+        messagingTemplate.convertAndSend("/topic/games/" + gameId + "/mode",
+                Map.of("manualMode", manualMode));
     }
 }

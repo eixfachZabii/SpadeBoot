@@ -17,10 +17,16 @@ import com.pokerapp.service.StatisticsService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class GameRoundService {
@@ -34,6 +40,11 @@ public class GameRoundService {
     private final SimpMessagingTemplate messagingTemplate;
     private final BettingRoundService bettingRoundService;
     private final HandEvaluator handEvaluator;
+    private final TaskScheduler taskScheduler;
+
+    private static final Logger logger = LoggerFactory.getLogger(GameRoundService.class);
+
+
 
     @Autowired
     public GameRoundService(
@@ -46,7 +57,7 @@ public class GameRoundService {
             StatisticsService statisticsService,
             SimpMessagingTemplate messagingTemplate,
             BettingRoundService bettingRoundService,
-            HandEvaluator handEvaluator) {
+            HandEvaluator handEvaluator, TaskScheduler taskScheduler) {
         this.gameRepository = gameRepository;
         this.gameRoundRepository = gameRoundRepository;
         this.playerRepository = playerRepository;
@@ -57,6 +68,7 @@ public class GameRoundService {
         this.messagingTemplate = messagingTemplate;
         this.bettingRoundService = bettingRoundService;
         this.handEvaluator = handEvaluator;
+        this.taskScheduler = taskScheduler;
     }
 
     /**
@@ -83,6 +95,9 @@ public class GameRoundService {
     public void startGameRound(Long gameRoundId) {
         GameRound gameRound = gameRoundRepository.findById(gameRoundId)
                 .orElseThrow(() -> new NotFoundException("GameRound not found with ID: " + gameRoundId));
+
+        //initialize and shuffle deck
+        gameRound.getGame().getDeck().initialize();
 
         // Deal private cards to players
         dealPrivateCards(gameRound);
@@ -128,6 +143,31 @@ public class GameRoundService {
 
         // Showdown if multiple players remain
         determineWinners(gameRound);
+
+
+        Game game = gameRound.getGame();
+
+        // Only automatically start next round if we're not in manual mode
+        if (game.isManualMode() && game.getStatus() == GameStatus.IN_PROGRESS) {
+            // Schedule the next round to start after a short delay (e.g., 5 seconds)
+            // This gives players time to see results of the current round
+            scheduleNextRound(game.getId());
+        }
+    }
+
+    private void scheduleNextRound(Long gameId) {
+        // Use a task scheduler like Spring's TaskScheduler
+        // Or create a new Thread with a sleep - though TaskScheduler is preferred
+        taskScheduler.schedule(
+                () -> {
+                    try {
+                        startGameRound(gameId);
+                    } catch (Exception e) {
+                        logger.error("Error starting next round", e);
+                    }
+                },
+                Instant.now().plusSeconds(10)
+        );
     }
 
     /**

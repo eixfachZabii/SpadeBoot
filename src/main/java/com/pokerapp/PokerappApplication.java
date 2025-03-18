@@ -14,6 +14,7 @@ import com.pokerapp.domain.game.MoveType;
 import com.pokerapp.domain.game.PokerTable;
 import com.pokerapp.domain.user.Player;
 import com.pokerapp.domain.user.User;
+import com.pokerapp.repository.GameRepository;
 import com.pokerapp.service.GameService;
 import com.pokerapp.service.InvitationService;
 import com.pokerapp.service.StatisticsService;
@@ -60,6 +61,8 @@ public class PokerappApplication {
 
     @Autowired
     private UserRoleService userRoleService;
+    @Autowired
+    private GameRepository gameRepository;
 
     public static void main(String[] args) {
         SpringApplication.run(PokerappApplication.class, args);
@@ -304,31 +307,28 @@ public class PokerappApplication {
 
         // 4. Run multiple game rounds
         logInfo("\n🎮 Running multiple game rounds to generate statistics...");
-
+        setSecurityContext(users.get(0));
+        Game game = gameService.createGame(statisticsTable.getId());
         try {
-            // Run 3 rounds
-            for (int round = 1; round <= 3; round++) {
+            // Start the game (this initiates the first round)
+            logInfo("\n🎲 Starting game with ID: " + game.getId());
+            gameService.startGame(game.getId());
+
+            // Run additional rounds
+            for (int round = 2; round <= 3; round++) {
                 logInfo("\n🎲 Starting round " + round + " of 3");
 
-                // Set security context to the first player
-                setSecurityContext(users.get(0));
+                // Use the new startNextRound method instead
+                gameService.startNextRound(game.getId());
 
-                // Create and start a new game
-                Game game = gameService.createGame(statisticsTable.getId());
-                gameService.startGame(game.getId());
-                logInfo("✅ Started game " + round + " with ID: " + game.getId());
-
-                // Run the game until completion
-                runGameToCompletion(game.getId(), users);
-
-                // End the game if not already finished
-                GameStateDto finalState = gameService.getGameState(game.getId());
-                if (!finalState.getStatus().equals(GameStatus.FINISHED.toString())) {
-                    gameService.endGame(game.getId());
-                }
+                logInfo("✅ Started round " + round);
             }
+
+            // End the game after all rounds
+            gameService.endGame(game.getId());
+            logInfo("Game ended");
         } catch (Exception e) {
-            logInfo("❌ Error during statistics testing: " + e.getMessage());
+            logInfo("❌ Error during game play: " + e.getMessage());
             e.printStackTrace();
         }
 

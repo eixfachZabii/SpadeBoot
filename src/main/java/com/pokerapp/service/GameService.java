@@ -12,4 +12,6 @@ public interface GameService {
     void startGame(Long gameId);
     GameStateDto getGameState(Long gameId);
     Game endGame(Long gameId);
+    void setGameMode(Long gameId, boolean manualMode);
+    void startNextRound(Long gameId);
 }

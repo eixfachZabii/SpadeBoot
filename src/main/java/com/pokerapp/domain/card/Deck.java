@@ -24,18 +24,17 @@ public class Deck {
 
     @PostLoad
     public void initialize() {
-        if (cards.isEmpty()) {
-            for (Suit suit : Suit.values()) {
-                for (c_Rank cRank : c_Rank.values()) {
-                    Card card = new Card();
-                    card.setSuit(suit);
-                    card.setCRank(cRank);
-                    card.setShowing(false);
-                    cards.add(card);
-                }
+        cards.clear();
+        for (Suit suit : Suit.values()) {
+            for (c_Rank cRank : c_Rank.values()) {
+                Card card = new Card();
+                card.setSuit(suit);
+                card.setCRank(cRank);
+                card.setShowing(false);
+                cards.add(card);
             }
-            shuffle();
         }
+        shuffle();
     }
 
     public void shuffle() {

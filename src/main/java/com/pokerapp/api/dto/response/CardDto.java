@@ -10,4 +10,9 @@ public class CardDto {
     private String suit;
     private String rank;
     private boolean hidden;
+
+    @Override
+    public String toString() {
+        return rank + " of " + suit;
+    }
 }

@@ -39,6 +39,9 @@ public class Game {
     @OneToOne(cascade = CascadeType.ALL)
     private GameRound currentRound;
 
+    @Column(name = "manual_mode")
+    private boolean manualMode = false;
+
     /**
      * Rotates the dealer position for the next hand
      */
