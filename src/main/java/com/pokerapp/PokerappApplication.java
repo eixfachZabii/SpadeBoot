@@ -78,8 +78,8 @@ public class PokerappApplication {
  //           createAndRunTestGames(tables);
  //           testSpectatorFunctionality(users, tables);
  //           testInvitations(users, tables);
-//            simulateCompletePokerRound(users);
-            testStatisticsTracking(users);
+            simulateCompletePokerRound(users);
+//            testStatisticsTracking(users);
 
             logInfo("\n🚀 Test environment initialization complete!");
         } catch (Exception e) {

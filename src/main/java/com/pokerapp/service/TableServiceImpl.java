@@ -1,4 +1,4 @@
-package com.pokerapp.service.impl;
+package com.pokerapp.service;
 
 import com.pokerapp.api.dto.request.TableSettingsDto;
 import com.pokerapp.api.dto.response.TableDto;
@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class TableServiceImpl implements TableService {
+public class TableServiceImpl {
 
     private final TableRepository tableRepository;
     private final PlayerRepository playerRepository;

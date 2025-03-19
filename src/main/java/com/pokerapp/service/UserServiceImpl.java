@@ -1,4 +1,4 @@
-package com.pokerapp.service.impl;
+package com.pokerapp.service;
 
 import com.pokerapp.api.dto.request.LoginDto;
 import com.pokerapp.api.dto.request.RegisterDto;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl {
 
 
     @Autowired
