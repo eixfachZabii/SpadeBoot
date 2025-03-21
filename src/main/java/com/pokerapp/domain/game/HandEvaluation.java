@@ -287,6 +287,7 @@ public class HandEvaluation {
             //HighCard
             case 1 -> CardHelper.numberToWord((int) (rankNumber / Math.pow(100,4)) % 100) + " high";
             //Todo: Missing error Handling
+            //Todo: Import CardHelperClass
             default -> "null";
         };
     }

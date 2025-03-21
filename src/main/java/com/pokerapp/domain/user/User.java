@@ -35,4 +35,11 @@ public class User {
     @CollectionTable(name = "user_roles")
     @Column(name = "role")
     private Set<String> roles = new HashSet<>();
+
+    public void addRole(String role) {
+        if (roles == null) {
+            roles = new HashSet<>();
+        }
+        roles.add(role);
+    }
 }

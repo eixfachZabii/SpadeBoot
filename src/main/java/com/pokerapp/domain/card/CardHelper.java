@@ -21,7 +21,7 @@ public class CardHelper {
         };
     }
 
-    public static String numberToPluralWords(int cardNumber) {
+    public static String numberToPluralWord(int cardNumber) {
         return switch (cardNumber) {
             case 2 -> "twos";
             case 3 -> "threes";

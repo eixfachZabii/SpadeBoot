@@ -1,12 +1,13 @@
 package com.pokerapp.domain.game;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.pokerapp.domain.user.Player;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "rounds")
 public class Round {
@@ -26,18 +27,16 @@ public class Round {
     @ManyToOne
     private Game game;
 
+    @Transient
     private Stage currentStage;
+
+
+    public Round() {
+    }
 
     public Round(Player[] players) {
         pre_flop = new Stage(players);
-        
-
-    }
-
-    public Round() {
-
-    }
-
+   }
 
     private Stage getNextStage() {
         if (currentStage.equals(pre_flop)) {

@@ -1,5 +1,17 @@
 package com.pokerapp.domain.game;
 
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "hands")
 public class Hand {
-    
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
 }

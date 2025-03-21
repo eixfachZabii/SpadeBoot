@@ -8,7 +8,6 @@ import com.pokerapp.domain.user.User;
 import com.pokerapp.exception.NotFoundException;
 import com.pokerapp.repository.PlayerRepository;
 import com.pokerapp.repository.TableRepository;
-import com.pokerapp.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,22 +20,17 @@ public class TableService {
 
     private final TableRepository tableRepository;
     private final PlayerRepository playerRepository;
-    private final UserRepository userRepository;
 
     @Autowired
     public TableService(
             TableRepository tableRepository,
-            PlayerRepository playerRepository,
-            UserRepository userRepository) {
+            PlayerRepository playerRepository) {
         this.tableRepository = tableRepository;
         this.playerRepository = playerRepository;
-        this.userRepository = userRepository;
     }
-
 
     @Transactional
     public TableDto createTable(TableSettingsDto settings, User owner) {
-
         // Find the player associated with this user
         Player ownerAsPlayer = playerRepository.findByUserId(owner.getId())
                 .orElseThrow(() -> new NotFoundException("Player not found for user: " + owner.getUsername()));

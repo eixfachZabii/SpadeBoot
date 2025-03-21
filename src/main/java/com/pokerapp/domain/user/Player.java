@@ -1,16 +1,8 @@
 package com.pokerapp.domain.user;
 
-import com.pokerapp.domain.card.Card;
-import com.pokerapp.domain.card.Hand;
-import com.pokerapp.domain.game.Move;
-import com.pokerapp.domain.poker.HandEvaluator;
-import com.pokerapp.domain.poker.HandRank;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Represents a player in the poker game. A player is a user with poker-specific properties.
@@ -20,6 +12,7 @@ import java.util.List;
 @Entity
 @Table(name = "players")
 public class Player {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,10 +21,8 @@ public class Player {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Current chip count at the table
     private Integer chips = 0;
 
-    // Player's status in the current game
     @Enumerated(EnumType.STRING)
     private PlayerStatus status = PlayerStatus.SITTING_OUT;
 
@@ -39,11 +30,10 @@ public class Player {
     @Column(name = "current_table_id")
     private Long currentTableId;
 
-    // Current win probability calculated by the server
+
     @Transient
     private Double winProbability = 0.0;
 
-    // Tracks the total bet amount for the current round
     @Transient
     private Integer totalBet = 0;
 
