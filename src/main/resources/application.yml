@@ -17,7 +17,7 @@ server:
 
 app:
   jwt:
-    secret: "classpath:app.key"
+    secret: MIIJQgIBADANBgkqhkiG9w0BAQEFAASCCSwwggkoAgEAAoICAQCfGxo0yrpc+cYHXa6RgiK9uSaj0Mh7veuVehye6cH6wovkx6goIkcO8QmbXfBuc+8F4bkiAz+52AHt9r5yEjtaeH074iXEQT0m1qEOy515zMzp8JDwW2U/bt1myhAhc/jZvyxi8W5bBzVqSgC0bn7DnzP2UtGuE4M0yo5+My6yAvKCkraqM4J6TeYCjY8EKONjpx/E6zqbwZOMWWjEDCFavRio0uoZn84enGWB7oze8cbdllWGaEcCqPEU/Kjqg0lArE88p7KETUzFJIflgTfCfDpc6JnJigtAi7HoYQnTf1eksy02CZgS8h3ae8medW+iCAIEWmDZq47m
     expirationMs: 86400000  # 24 hours
 
 #
