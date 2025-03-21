@@ -19,12 +19,12 @@ public class Card {
     private Suit suit;
 
     @Enumerated(EnumType.STRING)
-    private c_Rank cRank;
+    private Value value;
 
     private boolean isShowing;
 
     @Override
     public String toString() {
-        return cRank + " of " + suit;
+        return value + " of " + suit;
     }
 }

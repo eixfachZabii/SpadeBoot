@@ -1,7 +1,7 @@
 // src/main/java/com/pokerapp/domain/card/Rank.java
 package com.pokerapp.domain.card;
 
-public enum c_Rank {
+public enum Value {
     TWO(2),
     THREE(3),
     FOUR(4),
@@ -18,7 +18,7 @@ public enum c_Rank {
 
     private final int value;
 
-    c_Rank(int value) {
+    Value(int value) {
         this.value = value;
     }
 

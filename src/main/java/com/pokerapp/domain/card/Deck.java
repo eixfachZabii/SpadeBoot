@@ -26,10 +26,10 @@ public class Deck {
     public void initialize() {
         cards.clear();
         for (Suit suit : Suit.values()) {
-            for (c_Rank cRank : c_Rank.values()) {
+            for (Value value : Value.values()) {
                 Card card = new Card();
                 card.setSuit(suit);
-                card.setCRank(cRank);
+                card.setValue(value);
                 card.setShowing(false);
                 cards.add(card);
             }
