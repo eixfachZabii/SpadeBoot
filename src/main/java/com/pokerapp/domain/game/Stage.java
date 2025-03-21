@@ -2,25 +2,27 @@ package com.pokerapp.domain.game;
 
 import com.pokerapp.domain.user.Player;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "stages")
 public class Stage {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @OneToOne
     private Round round;
 
     @OneToMany(mappedBy = "Game", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Turn[] turns;
+    private List<Turn> turns;
 
     private int playerCount;
 
@@ -33,6 +35,8 @@ public class Stage {
             turns[i] = new Turn(players[i], currentBet);
         }
     }
+
+
 
     public void raiseBy(int value) {
         currentBet += value;

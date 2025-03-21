@@ -5,13 +5,16 @@ import java.util.List;
 
 import com.pokerapp.domain.user.Player;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "rounds")
 public class Round {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @OneToOne(cascade = CascadeType.ALL)
     private Stage pre_flop;
     @OneToOne(cascade = CascadeType.ALL)
@@ -30,6 +33,11 @@ public class Round {
         
 
     }
+
+    public Round() {
+
+    }
+
 
     private Stage getNextStage() {
         if (currentStage.equals(pre_flop)) {
