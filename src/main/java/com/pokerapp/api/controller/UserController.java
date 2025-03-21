@@ -36,10 +36,17 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@Valid @RequestBody LoginDto loginDto) {
+    public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginDto loginDto) {
         String token = userService.authenticate(loginDto);
-        Map<String, String> response = new HashMap<>();
+
+        // Get user details for the response
+        User user = userService.getCurrentUser();
+        UserDto userDto = convertToDto(user);
+
+        Map<String, Object> response = new HashMap<>();
         response.put("token", token);
+        response.put("user", userDto);
+
         return ResponseEntity.ok(response);
     }
 

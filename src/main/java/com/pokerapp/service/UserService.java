@@ -7,6 +7,9 @@ import com.pokerapp.domain.user.User;
 import com.pokerapp.exception.NotFoundException;
 import com.pokerapp.repository.PlayerRepository;
 import com.pokerapp.repository.UserRepository;
+import com.pokerapp.security.JwtUtils;
+import com.pokerapp.security.UserDetailsImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,6 +34,9 @@ public class UserService {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtUtils jwtUtils;
 
     @Transactional
     public User register(RegisterDto registerDto) {
@@ -66,10 +72,10 @@ public class UserService {
         // Set the authentication in the SecurityContext
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // Return a success message or token (JWT, for example)
-        // For now, we'll return a simple success message
-        //Todo: Tokens (Markus)
-        return "Authentication successful for user: " + loginDto.getUsername();
+        // Generate JWT token
+        String jwt = jwtUtils.generateJwtToken(authentication);
+
+        return jwt;
     }
 
     @Transactional
@@ -99,7 +105,8 @@ public class UserService {
 
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return userRepository.findByUsername(authentication.getName())
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        return userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new NotFoundException("User not found"));
     }
 

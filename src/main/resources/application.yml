@@ -17,8 +17,9 @@ server:
 
 app:
   jwt:
-    secret: supErsEcrEtKeyforPokerApp12345
+    secret: "classpath:app.key"
     expirationMs: 86400000  # 24 hours
+
 #
 #logging:
 #  level:
