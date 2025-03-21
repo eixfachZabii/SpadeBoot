@@ -18,4 +18,5 @@ public class ApplicationConfig {
     public HandEvaluation handEvaluation() {
         return new HandEvaluation();
     }
+
 }

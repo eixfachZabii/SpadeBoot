@@ -19,7 +19,7 @@ app:
   jwt:
     secret: supErsEcrEtKeyforPokerApp12345
     expirationMs: 86400000  # 24 hours
-
-logging:
-  level:
-    root: OFF
+#
+#logging:
+#  level:
+#    root: OFF
