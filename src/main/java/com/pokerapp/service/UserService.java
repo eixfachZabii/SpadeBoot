@@ -1,7 +1,9 @@
 package com.pokerapp.service;
 
-import com.pokerapp.api.dto.request.LoginDto;
-import com.pokerapp.api.dto.request.RegisterDto;
+import com.pokerapp.api.dto.request.user.LoginDto;
+import com.pokerapp.api.dto.request.user.RegisterDto;
+import com.pokerapp.api.dto.request.user.UpdatePasswordDto;
+import com.pokerapp.api.dto.request.user.UpdateUserDto;
 import com.pokerapp.domain.user.Player;
 import com.pokerapp.domain.user.User;
 import com.pokerapp.exception.NotFoundException;
@@ -11,6 +13,7 @@ import com.pokerapp.security.JwtUtils;
 import com.pokerapp.security.UserDetailsImpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -54,7 +57,7 @@ public class UserService {
         user.setEmail(registerDto.getEmail());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         user.setBalance(1000);  // Default starting balance
-        user.addRole("USER");
+        user.setRole("ROLE_USER"); // Default role
 
         return userRepository.save(user);
     }
@@ -73,9 +76,7 @@ public class UserService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // Generate JWT token
-        String jwt = jwtUtils.generateJwtToken(authentication);
-
-        return jwt;
+        return jwtUtils.generateJwtToken(authentication);
     }
 
     @Transactional
@@ -113,5 +114,73 @@ public class UserService {
     public User getUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found"));
+    }
+
+    // Updated methods for user management
+
+    @Transactional
+    public User updateUser(Long userId, UpdateUserDto updateUserDto) {
+        User user = getUserById(userId);
+
+        // Check if username is being changed and if it's already taken
+        if (!user.getUsername().equals(updateUserDto.getUsername()) &&
+                userRepository.existsByUsername(updateUserDto.getUsername())) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+
+        // Check if email is being changed and if it's already taken
+        if (!user.getEmail().equals(updateUserDto.getEmail()) &&
+                userRepository.existsByEmail(updateUserDto.getEmail())) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+
+        user.setUsername(updateUserDto.getUsername());
+        user.setEmail(updateUserDto.getEmail());
+
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User updatePassword(Long userId, UpdatePasswordDto updatePasswordDto) {
+        User user = getUserById(userId);
+
+        // Verify current password
+        if (!passwordEncoder.matches(updatePasswordDto.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(updatePasswordDto.getNewPassword()));
+
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User updateAvatar(Long userId, byte[] avatar) {
+        User user = getUserById(userId);
+        user.setAvatar(avatar);
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public User updateUserRole(Long userId, boolean isAdmin) {
+        User user = getUserById(userId);
+
+        if (isAdmin) {
+            user.setRole("ROLE_ADMIN");
+        } else {
+            user.setRole("ROLE_USER");
+        }
+
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public User updateUserBalance(Long userId, Integer amount) {
+        User user = getUserById(userId);
+        user.setBalance(user.getBalance() + amount);
+        return userRepository.save(user);
     }
 }

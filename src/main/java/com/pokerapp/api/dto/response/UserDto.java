@@ -3,8 +3,6 @@ package com.pokerapp.api.dto.response;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Set;
-
 @Getter
 @Setter
 public class UserDto {
@@ -13,5 +11,5 @@ public class UserDto {
     private String email;
     private Integer balance;
     private byte[] avatar;
-    private Set<String> roles;
+    private Boolean isAdmin;
 }

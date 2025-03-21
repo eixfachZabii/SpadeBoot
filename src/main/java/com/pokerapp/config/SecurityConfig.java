@@ -21,12 +21,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.pokerapp.security.JwtAuthenticationFilter;
 import com.pokerapp.security.JwtAuthenticationEntryPoint;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity // This enables @PreAuthorize annotations
 public class SecurityConfig {
 
     @Autowired
@@ -54,8 +53,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/login", "/api/users/login/").permitAll()
                         .requestMatchers("/ws/**").permitAll() // WebSocket endpoint
                         .requestMatchers("/error").permitAll() // Error endpoint
-                        // Protected endpoints
-                        .requestMatchers("/api/users/me", "/api/users/**").authenticated()
+
+                        // Admin-only endpoints
+                        .requestMatchers("/api/users/{id}/roles").hasRole("ADMIN")
+                        .requestMatchers("/api/users/{id}/balance").hasRole("ADMIN")
+
+                        // Protected endpoints for logged-in users
+                        .requestMatchers("/api/users/me/**").authenticated()
+                        .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/tables/**").authenticated()
                         .requestMatchers("/api/games/**").authenticated()
                         .anyRequest().authenticated()

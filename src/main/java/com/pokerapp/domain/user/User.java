@@ -1,14 +1,8 @@
-// src/main/java/com/pokerapp/domain/user/User.java
 package com.pokerapp.domain.user;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -33,15 +27,21 @@ public class User {
     @Column(columnDefinition = "MEDIUMBLOB")
     private byte[] avatar;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_roles")
     @Column(name = "role")
-    private Set<String> roles = new HashSet<>();
+    private String role = "ROLE_USER"; // Default role
 
-    public void addRole(String role) {
-        if (roles == null) {
-            roles = new HashSet<>();
-        }
-        roles.add(role);
+    // Method to check if user has admin role
+    public boolean isAdmin() {
+        return "ROLE_ADMIN".equals(this.role);
+    }
+
+    // Method to promote to admin
+    public void promoteToAdmin() {
+        this.role = "ROLE_ADMIN";
+    }
+
+    // Method to demote to user
+    public void demoteToUser() {
+        this.role = "ROLE_USER";
     }
 }

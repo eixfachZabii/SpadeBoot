@@ -1,4 +1,4 @@
-package com.pokerapp.api.dto.request;
+package com.pokerapp.api.dto.request.user;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

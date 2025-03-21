@@ -1,22 +1,20 @@
-// src/main/java/com/pokerapp/api/controller/UserController.java
 package com.pokerapp.api.controller;
 
-import com.pokerapp.api.dto.request.LoginDto;
-import com.pokerapp.api.dto.request.RegisterDto;
+import com.pokerapp.api.dto.request.user.*;
 import com.pokerapp.api.dto.response.UserDto;
-import com.pokerapp.domain.user.Player;
 import com.pokerapp.domain.user.User;
 import com.pokerapp.repository.PlayerRepository;
 import com.pokerapp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
-
+import java.io.IOException;
 import java.util.*;
-
-// src/main/java/com/pokerapp/api/controller/UserController.java
 
 @RestController
 @RequestMapping("/api/users")
@@ -26,7 +24,7 @@ public class UserController {
     private UserService userService;
 
     @Autowired
-    private PlayerRepository playerRepository; // Add this
+    private PlayerRepository playerRepository;
 
     @PostMapping("/register")
     public ResponseEntity<UserDto> register(@Valid @RequestBody RegisterDto registerDto) {
@@ -64,14 +62,56 @@ public class UserController {
         return ResponseEntity.ok(userDto);
     }
 
+    // Updated endpoints for user management
+
+    @PutMapping("/me")
+    public ResponseEntity<UserDto> updateCurrentUser(@Valid @RequestBody UpdateUserDto updateUserDto) {
+        User currentUser = userService.getCurrentUser();
+        User updatedUser = userService.updateUser(currentUser.getId(), updateUserDto);
+        UserDto userDto = convertToDto(updatedUser);
+        return ResponseEntity.ok(userDto);
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<UserDto> updateCurrentUserPassword(@Valid @RequestBody UpdatePasswordDto updatePasswordDto) {
+        User currentUser = userService.getCurrentUser();
+        User updatedUser = userService.updatePassword(currentUser.getId(), updatePasswordDto);
+        UserDto userDto = convertToDto(updatedUser);
+        return ResponseEntity.ok(userDto);
+    }
+
+    @PutMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserDto> updateCurrentUserAvatar(@RequestParam("avatar") MultipartFile avatarFile) throws IOException {
+        User currentUser = userService.getCurrentUser();
+        User updatedUser = userService.updateAvatar(currentUser.getId(), avatarFile.getBytes());
+        UserDto userDto = convertToDto(updatedUser);
+        return ResponseEntity.ok(userDto);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}/role")
+    public ResponseEntity<UserDto> updateUserRole(@PathVariable Long id, @Valid @RequestBody RoleChangeDto roleChangeDto) {
+        User updatedUser = userService.updateUserRole(id, roleChangeDto.getIsAdmin());
+        UserDto userDto = convertToDto(updatedUser);
+        return ResponseEntity.ok(userDto);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}/balance")
+    public ResponseEntity<UserDto> updateUserBalance(@PathVariable Long id, @Valid @RequestBody UpdateBalanceDto updateBalanceDto) {
+        User updatedUser = userService.updateUserBalance(id, updateBalanceDto.getAmount());
+        UserDto userDto = convertToDto(updatedUser);
+        return ResponseEntity.ok(userDto);
+    }
+
     private UserDto convertToDto(User user) {
         UserDto dto = new UserDto();
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
         dto.setBalance(user.getBalance());
-        Set<String> role = user.getRoles().isEmpty() ? Collections.singleton("USER") : user.getRoles();
-        dto.setRoles(role);
+        dto.setAvatar(user.getAvatar());
+        dto.setIsAdmin(user.isAdmin());
         return dto;
     }
 }
