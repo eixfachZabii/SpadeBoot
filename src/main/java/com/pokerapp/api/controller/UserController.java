@@ -13,9 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+
+import java.util.*;
 
 // src/main/java/com/pokerapp/api/controller/UserController.java
 
@@ -60,20 +59,12 @@ public class UserController {
 
     private UserDto convertToDto(User user) {
         UserDto dto = new UserDto();
-        // Fix the missing implementation
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
         dto.setBalance(user.getBalance());
-
-        // Set the role - in a real app you might have multiple roles
-        String role = user.getRoles().isEmpty() ? "USER" : user.getRoles().iterator().next();
-        dto.setRole(role);
-
-        // Find the current table ID if the user is a player
-        Optional<Player> playerOpt = playerRepository.findByUserId(user.getId());
-        playerOpt.ifPresent(player -> dto.setCurrentTableId(player.getCurrentTableId()));
-
+        Set<String> role = user.getRoles().isEmpty() ? Collections.singleton("USER") : user.getRoles();
+        dto.setRoles(role);
         return dto;
     }
 }

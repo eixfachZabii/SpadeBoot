@@ -2,6 +2,7 @@ package com.pokerapp.service;
 
 import com.pokerapp.api.dto.request.LoginDto;
 import com.pokerapp.api.dto.request.RegisterDto;
+import com.pokerapp.domain.user.Player;
 import com.pokerapp.domain.user.User;
 import com.pokerapp.exception.NotFoundException;
 import com.pokerapp.repository.PlayerRepository;
@@ -71,6 +72,31 @@ public class UserService {
         return "Authentication successful for user: " + loginDto.getUsername();
     }
 
+    @Transactional
+    public void createPlayer(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found for user ID: " + userId));
+
+        //Only create Player if absent
+        if(playerRepository.existsByUserId(userId)) {
+            playerRepository.findByUserId(userId)
+                    .orElseThrow(() -> new NotFoundException("Error fetching Player with user ID: " + userId));
+            return;
+        }
+
+        Player player = new Player();
+        player.setUser(user);
+
+        playerRepository.save(player);
+    }
+
+    @Transactional
+    public User updateBalance(Long userId, Integer amount) {
+        User user = getUserById(userId);
+        user.setBalance(user.getBalance() + amount);
+        return userRepository.save(user);
+    }
+
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return userRepository.findByUsername(authentication.getName())
@@ -80,12 +106,5 @@ public class UserService {
     public User getUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found"));
-    }
-
-    @Transactional
-    public User updateBalance(Long userId, Integer amount) {
-        User user = getUserById(userId);
-        user.setBalance(user.getBalance() + amount);
-        return userRepository.save(user);
     }
 }
