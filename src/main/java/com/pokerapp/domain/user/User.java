@@ -25,7 +25,7 @@ public class User {
     @Column(unique = true)
     private String email;
 
-    private Double balance = 1000.0; // Default starting balance
+    private Integer balance = 1000; // Default starting balance
 
     @Lob
     @Column(columnDefinition = "MEDIUMBLOB")
@@ -35,14 +35,4 @@ public class User {
     @CollectionTable(name = "user_roles")
     @Column(name = "role")
     private Set<String> roles = new HashSet<>();
-
-    public User() {
-    }
-
-    public void addRole(String role) {
-        if (roles == null) {
-            roles = new HashSet<>();
-        }
-        roles.add(role);
-    }
 }

@@ -1,17 +1,14 @@
 package com.pokerapp.service;
 
-import com.pokerapp.api.dto.request.TableSettingsDto;
 import com.pokerapp.api.dto.response.TableDto;
+import com.pokerapp.api.dto.request.TableSettingsDto;
 import com.pokerapp.domain.game.PokerTable;
 import com.pokerapp.domain.user.Player;
-import com.pokerapp.domain.user.Spectator;
 import com.pokerapp.domain.user.User;
 import com.pokerapp.exception.NotFoundException;
 import com.pokerapp.repository.PlayerRepository;
-import com.pokerapp.repository.SpectatorRepository;
 import com.pokerapp.repository.TableRepository;
 import com.pokerapp.repository.UserRepository;
-import com.pokerapp.service.TableService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,28 +17,26 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class TableServiceImpl {
+public class TableService {
 
     private final TableRepository tableRepository;
     private final PlayerRepository playerRepository;
-    private final SpectatorRepository spectatorRepository;
     private final UserRepository userRepository;
 
     @Autowired
-    public TableServiceImpl(
+    public TableService(
             TableRepository tableRepository,
             PlayerRepository playerRepository,
-            SpectatorRepository spectatorRepository,
             UserRepository userRepository) {
         this.tableRepository = tableRepository;
         this.playerRepository = playerRepository;
-        this.spectatorRepository = spectatorRepository;
         this.userRepository = userRepository;
     }
 
-    @Override
+
     @Transactional
     public TableDto createTable(TableSettingsDto settings, User owner) {
+
         // Find the player associated with this user
         Player ownerAsPlayer = playerRepository.findByUserId(owner.getId())
                 .orElseThrow(() -> new NotFoundException("Player not found for user: " + owner.getUsername()));
@@ -52,44 +47,15 @@ public class TableServiceImpl {
         pokerTable.setMaxPlayers(settings.getMaxPlayers());
         pokerTable.setMinBuyIn(settings.getMinBuyIn());
         pokerTable.setMaxBuyIn(settings.getMaxBuyIn());
-        pokerTable.setIsPrivate(settings.getPrivate());
+        pokerTable.setIsPrivate(settings.getIsPrivate());
         pokerTable.setOwner(ownerAsPlayer);
 
         PokerTable savedTable = tableRepository.save(pokerTable);
         return convertToDto(savedTable);
     }
 
-    @Override
-    public TableDto getTableById(Long id) {
-        PokerTable pokerTable = tableRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Table not found with ID: " + id));
-        return convertToDto(pokerTable);
-    }
-
-    @Override
-    public PokerTable getTableEntityById(Long id) {
-        return tableRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Table not found with ID: " + id));
-    }
-
-    @Override
-    public List<TableDto> getAllTables() {
-        return tableRepository.findAll().stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<TableDto> getPublicTables() {
-        return tableRepository.findAll().stream()
-                .filter(table -> !table.getIsPrivate())
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     @Transactional
-    public TableDto joinTable(Long tableId, Long userId, Double buyIn) {
+    public TableDto joinTable(Long tableId, Long userId, Integer buyIn) {
         PokerTable pokerTable = getTableEntityById(tableId);
 
         // Find player by user ID
@@ -111,38 +77,8 @@ public class TableServiceImpl {
         return convertToDto(updatedTable);
     }
 
-    @Override
-    @Transactional
-    public TableDto joinTableAsSpectator(Long tableId, Long userId) {
-        PokerTable pokerTable = getTableEntityById(tableId);
 
-        // Find spectator by user ID or create one if it doesn't exist
-        Spectator spectator = spectatorRepository.findByUserId(userId)
-                .orElseGet(() -> {
-                    User user = userRepository.findById(userId)
-                            .orElseThrow(() -> new NotFoundException("User not found with ID: " + userId));
 
-                    Spectator newSpectator = new Spectator();
-                    newSpectator.setUser(user);
-                    return spectatorRepository.save(newSpectator);
-                });
-
-        if (spectator.getWatchingTableId() != null) {
-            throw new IllegalStateException("Spectator is already watching a table");
-        }
-
-        boolean added = pokerTable.addSpectator(spectator);
-        if (!added) {
-            throw new IllegalStateException("Could not join as spectator");
-        }
-
-        spectatorRepository.save(spectator);
-        PokerTable updatedTable = tableRepository.save(pokerTable);
-
-        return convertToDto(updatedTable);
-    }
-
-    @Override
     @Transactional
     public TableDto leaveTable(Long tableId, Long userId) {
         PokerTable pokerTable = getTableEntityById(tableId);
@@ -162,24 +98,32 @@ public class TableServiceImpl {
         return convertToDto(updatedTable);
     }
 
-    @Override
-    @Transactional
-    public TableDto removeSpectator(Long tableId, Long userId) {
-        PokerTable pokerTable = getTableEntityById(tableId);
 
-        // Find spectator by user ID
-        Spectator spectator = spectatorRepository.findByUserId(userId)
-                .orElseThrow(() -> new NotFoundException("Spectator not found for user ID: " + userId));
+    public TableDto getTableById(Long id) {
+        PokerTable pokerTable = tableRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Table not found with ID: " + id));
+        return convertToDto(pokerTable);
+    }
 
-        boolean removed = pokerTable.removeSpectator(spectator);
-        if (!removed) {
-            throw new IllegalStateException("Spectator not watching this table");
-        }
 
-        spectatorRepository.save(spectator);
-        PokerTable updatedTable = tableRepository.save(pokerTable);
+    public PokerTable getTableEntityById(Long id) {
+        return tableRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Table not found with ID: " + id));
+    }
 
-        return convertToDto(updatedTable);
+
+    public List<TableDto> getAllTables() {
+        return tableRepository.findAll().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+
+    public List<TableDto> getPublicTables() {
+        return tableRepository.findAll().stream()
+                .filter(table -> !table.getIsPrivate())
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
     private TableDto convertToDto(PokerTable pokerTable) {
@@ -193,7 +137,7 @@ public class TableServiceImpl {
         dto.setMaxBuyIn(pokerTable.getMaxBuyIn());
         dto.setIsPrivate(pokerTable.getIsPrivate());
         dto.setOwnerId(pokerTable.getOwner().getUserId());
-        dto.setHasActiveGame(pokerTable.getCurrentGame() != null);
+        dto.setHasActiveGame(pokerTable.getGame() != null);
         return dto;
     }
 }
