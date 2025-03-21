@@ -18,14 +18,11 @@ public class Game {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Double smallBlind;
+    private Integer smallBlind;
 
-    private Double bigBlind;
+    private Integer bigBlind;
 
     private Integer dealerIndex = 0;
-
-    @Enumerated(EnumType.STRING)
-    private GameStatus status = GameStatus.WAITING;
 
     @OneToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
     private PokerTable pokerTable;
@@ -39,8 +36,6 @@ public class Game {
     @OneToOne(cascade = CascadeType.ALL)
     private GameRound currentRound;
 
-    @Column(name = "manual_mode")
-    private boolean manualMode = false;
 
     /**
      * Rotates the dealer position for the next hand
@@ -48,8 +43,11 @@ public class Game {
     public void rotateDealerPosition() {
         List<Player> activePlayers = new ArrayList<>();
         for (Player player : pokerTable.getPlayers()) {
-            if (player.getStatus() == PlayerStatus.ACTIVE || player.getStatus() == PlayerStatus.SITTING_OUT) {
+            if (player.getStatus() == PlayerStatus.ACTIVE) {
                 activePlayers.add(player);
+            }
+            if (player.getStatus() == PlayerStatus.SITTING_OUT) {
+                activePlayers.remove(player);
             }
         }
 

@@ -50,18 +50,12 @@ public class TableController {
     @PostMapping("/{id}/join")
     public ResponseEntity<TableDto> joinTable(
             @PathVariable Long id,
-            @RequestParam Double buyIn) {
+            @RequestParam Integer buyIn) {
         // Pass the User ID, not the Player ID - the service will handle conversion
         Long userId = userService.getCurrentUser().getId();
         return ResponseEntity.ok(tableService.joinTable(id, userId, buyIn));
     }
 
-    @PostMapping("/{id}/spectate")
-    public ResponseEntity<TableDto> spectateTable(@PathVariable Long id) {
-        // Pass the User ID, not the Spectator ID
-        Long userId = userService.getCurrentUser().getId();
-        return ResponseEntity.ok(tableService.joinTableAsSpectator(id, userId));
-    }
 
     @PostMapping("/{id}/leave")
     public ResponseEntity<TableDto> leaveTable(@PathVariable Long id) {
@@ -70,12 +64,6 @@ public class TableController {
         return ResponseEntity.ok(tableService.leaveTable(id, userId));
     }
 
-    @PostMapping("/{id}/stop-spectating")
-    public ResponseEntity<TableDto> stopSpectating(@PathVariable Long id) {
-        // Pass the User ID, not the Spectator ID
-        Long userId = userService.getCurrentUser().getId();
-        return ResponseEntity.ok(tableService.removeSpectator(id, userId));
-    }
 
     private TableDto convertToDto(PokerTable pokerTable) {
         TableDto dto = new TableDto();
@@ -88,7 +76,7 @@ public class TableController {
         dto.setMaxBuyIn(pokerTable.getMaxBuyIn());
         dto.setIsPrivate(pokerTable.getIsPrivate());
         dto.setOwnerId(pokerTable.getOwner().getUserId());
-        dto.setHasActiveGame(pokerTable.getCurrentGame() != null);
+        dto.setHasActiveGame(pokerTable.getGame() != null);
         return dto;
     }
 }

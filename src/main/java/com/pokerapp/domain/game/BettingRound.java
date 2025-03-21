@@ -1,15 +1,13 @@
 package com.pokerapp.domain.game;
 
+import com.pokerapp.domain.card.Card;
 import com.pokerapp.domain.user.Player;
 import com.pokerapp.domain.user.PlayerStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a single betting stage within a poker round (PreFlop, Flop, Turn, or River).
@@ -24,12 +22,11 @@ public class BettingRound {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // The stage of this betting round
-    @Enumerated(EnumType.STRING)
-    private BettingStage stage;
+    @Transient
+    private final Map<Player, Integer> playerBetMap = new HashMap<>();
 
     // The current highest bet amount
-    private Double currentBet = 0.0;
+    private Integer currentBet = 0;
 
     // Reference to the parent game round
     @ManyToOne
@@ -37,7 +34,7 @@ public class BettingRound {
 
     // All moves made during this betting round
     @OneToMany(mappedBy = "bettingRound", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<Move> moves = new ArrayList<>();
+    //private List<Move> moves = new ArrayList<>();
 
     public Set<Player> getPlayers() {
         return gameRound != null ? gameRound.getPlayers() : Collections.emptySet();

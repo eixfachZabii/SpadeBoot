@@ -3,7 +3,6 @@ package com.pokerapp.domain.game;
 
 import com.pokerapp.domain.user.Player;
 import com.pokerapp.domain.user.PlayerStatus;
-import com.pokerapp.domain.user.Spectator;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,9 +25,9 @@ public class PokerTable {
 
     private Integer maxPlayers;
 
-    private Double minBuyIn;
+    private Integer minBuyIn;
 
-    private Double maxBuyIn;
+    private Integer maxBuyIn;
 
     private Boolean isPrivate = false;
 
@@ -43,18 +42,10 @@ public class PokerTable {
     )
     private Set<Player> players = new HashSet<>();
 
-    @ManyToMany
-    @JoinTable(
-            name = "table_spectators",
-            joinColumns = @JoinColumn(name = "table_id"),
-            inverseJoinColumns = @JoinColumn(name = "spectator_id")
-    )
-    private Set<Spectator> spectators = new HashSet<>();
-
     @OneToOne(cascade = CascadeType.ALL)
-    private Game currentGame;
+    private Game game;
 
-    public boolean addPlayer(Player player, Double buyIn) {
+    public boolean addPlayer(Player player, Integer buyIn) {
 
         if(players.stream().anyMatch(p -> p.getUserId().equals(player.getUserId()))) {
             return true;
@@ -68,12 +59,12 @@ public class PokerTable {
             return false;
         }
 
-        if (buyIn > player.getBalance()) {
+        if (buyIn > player.getUser().getBalance()) {
             return false;
         }
 
         player.setChips(buyIn);
-        player.setBalance(player.getBalance() - buyIn);
+        player.getUser().setBalance(player.getUser().getBalance() - buyIn);
         player.setCurrentTableId(this.id);
         player.setStatus(PlayerStatus.ACTIVE);
         players.add(player);
@@ -81,24 +72,13 @@ public class PokerTable {
         return true;
     }
 
-    public boolean addSpectator(Spectator spectator) {
-        spectator.setWatchingTableId(this.id);
-        return spectators.add(spectator);
-    }
-
-    public boolean removeSpectator(Spectator spectator) {
-        spectator.setWatchingTableId(null);
-        return spectators.remove(spectator);
-    }
-
     public boolean removePlayer(Player player) {
         if (!players.contains(player)) {
             return false;
         }
 
-        Double remainingChips = player.getChips();
+        Integer remainingChips = player.getChips();
         player.leaveTable(remainingChips);
         return players.remove(player);
     }
-
 }

@@ -2,15 +2,12 @@ package com.pokerapp.domain.game;
 
 import com.pokerapp.domain.card.Card;
 import com.pokerapp.domain.user.Player;
-import com.pokerapp.domain.user.PlayerStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.security.Key;
+import java.util.*;
 
 /**
  * Represents a complete round of poker from dealing cards to determining winners.
@@ -28,10 +25,11 @@ public class GameRound {
     // The round number within the game (e.g., 1st hand, 2nd hand, etc.)
     private Integer roundNumber;
 
-    // The total pot amount for this round
-    private Double pot = 0.0;
+    private Integer pot = 0;
 
-    // The community cards for this round (flop, turn, river)
+    @Transient
+    private final Map<Player,List<Card>> playerCardMap = new HashMap<>();
+
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Card> communityCards = new ArrayList<>();
 
@@ -46,6 +44,9 @@ public class GameRound {
     // The game this round belongs to
     @ManyToOne
     private Game game;
+
+
+    /** Getters / Setters */
 
     public Set<Player> getPlayers() {
         return game != null ? game.getPlayers() : Collections.emptySet();
@@ -75,40 +76,40 @@ public class GameRound {
     /**
      * Advances to the next betting stage (PreFlop -> Flop -> Turn -> River)
      */
-    public void advanceToNextBettingRound() {
-        BettingStage nextStage;
-
-        if (currentBettingRound == null) {
-            nextStage = BettingStage.PREFLOP;
-        } else {
-            switch (currentBettingRound.getStage()) {
-                case PREFLOP:
-                    nextStage = BettingStage.FLOP;
-                    dealCommunityCards(3); // Deal flop (3 cards)
-                    break;
-                case FLOP:
-                    nextStage = BettingStage.TURN;
-                    dealCommunityCards(1); // Deal turn (1 card)
-                    break;
-                case TURN:
-                    nextStage = BettingStage.RIVER;
-                    dealCommunityCards(1); // Deal river (1 card)
-                    break;
-                case RIVER:
-                    // Round is complete after river, determine winner
-                    return;
-                default:
-                    throw new IllegalStateException("Unknown betting stage");
-            }
-        }
-
-        // Create new betting round for the next stage
-        BettingRound newRound = new BettingRound();
-        newRound.setStage(nextStage);
-        newRound.setCurrentBet(0.0); // Reset the current bet for the new stage
-        newRound.setGameRound(this);
-
-        bettingRounds.add(newRound);
-        currentBettingRound = newRound;
-    }
+//    public void advanceToNextBettingRound() {
+//        BettingStage nextStage;
+//
+//        if (currentBettingRound == null) {
+//            nextStage = BettingStage.PREFLOP;
+//        } else {
+//            switch (currentBettingRound.getStage()) {
+//                case PREFLOP:
+//                    nextStage = BettingStage.FLOP;
+//                    dealCommunityCards(3); // Deal flop (3 cards)
+//                    break;
+//                case FLOP:
+//                    nextStage = BettingStage.TURN;
+//                    dealCommunityCards(1); // Deal turn (1 card)
+//                    break;
+//                case TURN:
+//                    nextStage = BettingStage.RIVER;
+//                    dealCommunityCards(1); // Deal river (1 card)
+//                    break;
+//                case RIVER:
+//                    // Round is complete after river, determine winner
+//                    return;
+//                default:
+//                    throw new IllegalStateException("Unknown betting stage");
+//            }
+//        }
+//
+//        // Create new betting round for the next stage
+//        BettingRound newRound = new BettingRound();
+//        newRound.setStage(nextStage);
+//        newRound.setCurrentBet(0.0); // Reset the current bet for the new stage
+//        newRound.setGameRound(this);
+//
+//        bettingRounds.add(newRound);
+//        currentBettingRound = newRound;
+//    }
 }

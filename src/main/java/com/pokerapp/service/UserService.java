@@ -6,7 +6,6 @@ import com.pokerapp.domain.user.User;
 import com.pokerapp.exception.NotFoundException;
 import com.pokerapp.repository.PlayerRepository;
 import com.pokerapp.repository.UserRepository;
-import com.pokerapp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -17,7 +16,7 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 
 @Service
-public class UserServiceImpl {
+public class UserService {
 
 
     @Autowired
