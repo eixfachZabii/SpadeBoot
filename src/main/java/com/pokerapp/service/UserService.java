@@ -116,7 +116,7 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException("User not found"));
     }
 
-    // Updated methods for user management
+
 
     @Transactional
     public User updateUser(Long userId, UpdateUserDto updateUserDto) {

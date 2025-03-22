@@ -63,6 +63,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/tables/**").authenticated()
                         .requestMatchers("/api/games/**").authenticated()
+                        .requestMatchers("/api/players/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
