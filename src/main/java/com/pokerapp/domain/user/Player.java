@@ -72,4 +72,13 @@ public class Player {
         this.status = PlayerStatus.SITTING_OUT;
         this.totalBet = 0;
     }
+
+
+    //^^keine Ahnung was das alles hier oben drüber soll
+    //Ab hier code für Backend Logik
+
+    public void pay(int amount) {
+        chips+=amount;
+        //TODO: save entity
+    }
 }

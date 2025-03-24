@@ -1,6 +1,11 @@
 package com.pokerapp.domain.game;
 
+import java.util.List;
+import java.util.Map;
+import org.springframework.data.util.Pair;
+
 import com.pokerapp.domain.user.Player;
+import com.pokerapp.domain.card.Card;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -26,16 +31,14 @@ public class Round {
     private Stage river;
     @ManyToOne
     private Game game;
+    @ManyToOne
+    private List<Player> winner;
+    @ManyToMany 
+    private List<Player> players;
 
-    @Transient
-    private Stage currentStage;
+    private Map<Player, Pair<Card, Card>> playerHands;
 
+    private List<Card> communityCards;
 
-    public Round() {
-    }
-
-    public Round(Player[] players) {
-    }
-
-
+    private int playerCount;
 }

@@ -24,7 +24,4 @@ public class Game {
     private Player[] allPlayers;
     private Player[] currentPlayers;
 
-    public void playRound() {
-        Round newRound = new Round(currentPlayers);
-    }
 }
