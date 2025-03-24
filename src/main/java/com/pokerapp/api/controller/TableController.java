@@ -28,6 +28,7 @@ public class TableController {
     @PostMapping
     public ResponseEntity<TableDto> createTable(@Valid @RequestBody TableSettingsDto settings) {
         User currentUser = userService.getCurrentUser();
+        userService.createPlayer(currentUser.getId());
         TableDto table = tableService.createTable(settings, currentUser);
         return ResponseEntity.ok(table);
     }
@@ -51,6 +52,7 @@ public class TableController {
     public ResponseEntity<TableDto> joinTable(@PathVariable Long id, @RequestParam Integer buyIn) {
         // Pass the User ID, not the Player ID - the service will handle conversion
         Long userId = userService.getCurrentUser().getId();
+        userService.createPlayer(userId);
         return ResponseEntity.ok(tableService.joinTable(id, userId, buyIn));
     }
 
