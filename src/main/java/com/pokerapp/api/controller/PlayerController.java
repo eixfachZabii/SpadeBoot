@@ -1,7 +1,10 @@
 package com.pokerapp.api.controller;
 
+import com.pokerapp.api.dto.response.PlayerDto;
+import com.pokerapp.api.dto.response.UserDto;
 import com.pokerapp.domain.user.Player;
 import com.pokerapp.domain.user.User;
+import com.pokerapp.exception.NotFoundException;
 import com.pokerapp.repository.PlayerRepository;
 import com.pokerapp.service.UserService;
 import com.pokerapp.service.TableService;
@@ -25,6 +28,16 @@ public class PlayerController {
 
     @Autowired
     private TableService tableService;
+
+
+    @GetMapping("/me")
+    public ResponseEntity<PlayerDto> getCurrentPlayer() {
+        Long userId = userService.getCurrentUser().getId();
+        Player player = playerRepository.findByUserId(userId).orElseThrow(() -> new NotFoundException("Error fetching Player with user ID: " + userId));
+        PlayerDto playerDto = convertToDto(player);
+        return ResponseEntity.ok(playerDto);
+    }
+
 
     /**
      * Check if the current user is at a table
@@ -64,5 +77,18 @@ public class PlayerController {
         }
 
         return ResponseEntity.ok(response);
+    }
+
+    private PlayerDto convertToDto(Player player) {
+        PlayerDto dto = new PlayerDto();
+        dto.setId(player.getId());
+        dto.setUser(player.getUser());
+        dto.setChips(player.getChips());
+        dto.setStatus(player.getStatus());
+        dto.setCurrentTableId(player.getCurrentTableId());
+        dto.setWinProbability(player.getWinProbability());
+        dto.setTotalBet(player.getTotalBet());
+
+        return dto;
     }
 }

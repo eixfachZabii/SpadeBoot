@@ -59,7 +59,11 @@ public class UserService {
         user.setBalance(1000);  // Default starting balance
         user.setRole("ROLE_USER"); // Default role
 
-        return userRepository.save(user);
+        user = userRepository.save(user);
+
+        createPlayer(user.getId());
+
+        return user;
     }
 
     @Transactional
@@ -95,13 +99,6 @@ public class UserService {
         player.setUser(user);
 
         playerRepository.save(player);
-    }
-
-    @Transactional
-    public User updateBalance(Long userId, Integer amount) {
-        User user = getUserById(userId);
-        user.setBalance(user.getBalance() + amount);
-        return userRepository.save(user);
     }
 
     public User getCurrentUser() {
