@@ -3,8 +3,9 @@ package com.pokerapp.api.controller;
 
 import com.pokerapp.domain.game.Game;
 import com.pokerapp.repository.PlayerRepository;
-import com.pokerapp.service.GameService;
 import com.pokerapp.service.UserService;
+import com.pokerapp.session.GameSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ import java.util.Map;
 public class GameController {
 
     @Autowired
-    private GameService gameService;
+    private GameSession gameService;
 
     @Autowired
     private UserService userService;

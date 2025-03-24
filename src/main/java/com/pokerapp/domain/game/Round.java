@@ -35,23 +35,7 @@ public class Round {
     }
 
     public Round(Player[] players) {
-        pre_flop = new Stage(players);
-   }
-
-    private Stage getNextStage() {
-        if (currentStage.equals(pre_flop)) {
-            currentStage = flop;
-            return currentStage;
-        } else if (currentStage.equals(flop)) {
-            currentStage = turn;
-            return currentStage;
-        } else if (currentStage.equals(turn)) {
-            currentStage = river;
-            return currentStage;
-        } else if (currentStage.equals(river)) {
-            return null; // Todo: missing error handling
-        } else {
-            return null; // Todo: missing error handling
-        }
     }
+
+
 }

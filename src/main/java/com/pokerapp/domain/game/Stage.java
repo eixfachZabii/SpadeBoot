@@ -29,25 +29,6 @@ public class Stage {
 
     private int currentBet;
 
-    public Stage() {
-    }
+    private StageType type;
 
-    public Stage(Player[] players) {
-        playerCount = players.length;
-        for (int i = 0; i < playerCount; i++) {
-            //turns[i] = new Turn(players[i], currentBet);
-            //TODO: Arraylist statt [] :)
-        }
-    }
-
-    public void raiseBy(int value) {
-        currentBet += value;
-    }
-
-    public void raiseTo(int value) {
-        if (currentBet >= value) {
-            //Todo: Missing error handling
-        }
-        currentBet = value;
-    }
 }
