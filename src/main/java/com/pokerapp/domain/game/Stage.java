@@ -1,5 +1,6 @@
 package com.pokerapp.domain.game;
 
+import com.pokerapp.domain.card.Card;
 import com.pokerapp.domain.user.Player;
 
 import jakarta.persistence.*;
@@ -27,8 +28,8 @@ public class Stage {
 
     private int playerCount;
 
-    private int currentBet;
-
     private StageType type;
+
+    private List<Card> newCards;
 
 }

@@ -2,10 +2,9 @@ package com.pokerapp.session;
 
 import java.util.List;
 
-import com.pokerapp.domain.game.Round;
+import com.pokerapp.domain.game.Game;
 import com.pokerapp.domain.user.Player;
 
-import ch.qos.logback.core.util.Duration;
 
 public class GameSession extends Thread {
 
@@ -16,7 +15,8 @@ public class GameSession extends Thread {
    
     @Override
     public void run() {
-        startRound();
+        Game game = new Game();
+        startRound(game);
         while (roundRunning) {
             try {
                 Thread.sleep(100);
@@ -26,7 +26,7 @@ public class GameSession extends Thread {
             }
             
         }
-        startRound();
+        startRound(game);
     }
     
     public void startGame(int bigBlind) {
@@ -34,7 +34,7 @@ public class GameSession extends Thread {
         this.start();
     }   
 
-    public void startRound() {
+    public void startRound(Game game) {
         if (currentRound != null) {
             try {
                 currentRound.join();
@@ -43,12 +43,14 @@ public class GameSession extends Thread {
                 e.printStackTrace();
             }
         }
-        currentRound = new RoundSession();
-        currentRound.startRound(this, currentPlayers);
+        currentRound = new RoundSession(this, game, currentPlayers, null, 0);
+        currentRound.start();
         roundRunning = true;
     }
 
     public void setRoundRunning(boolean state) {
         roundRunning = state;
     }
+
+    
 }
