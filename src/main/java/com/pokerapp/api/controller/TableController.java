@@ -33,6 +33,12 @@ public class TableController {
         return ResponseEntity.ok(table);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<TableDto> deleteTable(@PathVariable Long id) {
+        User currentUser = userService.getCurrentUser();
+        return ResponseEntity.ok(tableService.deleteTable(id, currentUser.getId()));
+    }
+
     @GetMapping
     public ResponseEntity<List<TableDto>> getAllTables() {
         return ResponseEntity.ok(tableService.getAllTables());

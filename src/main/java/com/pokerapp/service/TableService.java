@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -90,6 +91,35 @@ public class TableService {
         PokerTable updatedTable = tableRepository.save(pokerTable);
 
         return convertToDto(updatedTable);
+    }
+
+    @Transactional
+    public TableDto deleteTable(Long tableId, Long userId) {
+        PokerTable pokerTable = getTableEntityById(tableId);
+
+        // Check if the user is the owner of the table
+        if (!pokerTable.getOwner().getUserId().equals(userId)) {
+            throw new IllegalStateException("Only the owner can delete this table");
+        }
+
+        // Check if there's an active game
+        if (pokerTable.getGame() != null) {
+            throw new IllegalStateException("Cannot delete table with an active game");
+        }
+
+        // Remove all players from the table before deletion
+        for (Player player : new HashSet<>(pokerTable.getPlayers())) {
+            pokerTable.removePlayer(player);
+            playerRepository.save(player);
+        }
+
+        // Create a DTO copy before deletion for return value
+        TableDto tableDto = convertToDto(pokerTable);
+
+        // Delete the table
+        tableRepository.delete(pokerTable);
+
+        return tableDto;
     }
 
 
