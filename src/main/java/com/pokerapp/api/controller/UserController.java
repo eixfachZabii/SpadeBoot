@@ -110,7 +110,14 @@ public class UserController {
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
         dto.setBalance(user.getBalance());
-        dto.setAvatar(user.getAvatar());
+
+        // Convert avatar bytes to base64 instead of sending raw bytes
+        if (user.getAvatar() != null) {
+            dto.setAvatarFromBytes(user.getAvatar());
+        } else {
+            dto.setAvatarBase64(null);
+        }
+
         dto.setIsAdmin(user.isAdmin());
         return dto;
     }
