@@ -1,8 +1,6 @@
 package com.pokerapp.domain.game;
 
 import com.pokerapp.domain.card.Card;
-import com.pokerapp.domain.user.Player;
-
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +19,7 @@ public class Stage {
     private Long id;
 
     @OneToOne
+    @JoinColumn(name = "round_id")
     private Round round;
 
     @OneToMany(mappedBy = "stage", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -28,8 +27,9 @@ public class Stage {
 
     private int playerCount;
 
+    @Enumerated(EnumType.STRING)
     private StageType type;
 
-    private List<Card> newCards;
-
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<Card> newCards = new ArrayList<>();
 }

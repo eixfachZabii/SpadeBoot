@@ -53,7 +53,7 @@ public class RoundSession extends Thread {
         //Playercardmap ist gesetzt ab hier (oder sollte)
 
         List<Card> communityCards = new ArrayList<>();
-        round.setPre_flop(stage(round, StageType.PRE_FLOP));
+        round.setPreFlop(stage(round, StageType.PRE_FLOP));
         round.setFlop(stage(round, StageType.FLOP));
         communityCards.addAll(round.getFlop().getNewCards());
         round.setTurn(stage(round, StageType.TURN));

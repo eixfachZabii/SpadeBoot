@@ -5,11 +5,7 @@ import java.util.List;
 
 import com.pokerapp.domain.user.Player;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,10 +14,17 @@ import lombok.Setter;
 @Entity
 @Table(name = "games")
 public class Game {
-    @OneToMany(mappedBy = "Game", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Round> gameRounds = new ArrayList<>();
 
-    private Player[] allPlayers;
-    private Player[] currentPlayers;
+    @ManyToMany
+    private List<Player> allPlayers = new ArrayList<>();
 
+    @ManyToMany
+    private List<Player> currentPlayers = new ArrayList<>();
 }

@@ -1,15 +1,15 @@
 package com.pokerapp.domain.game;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.springframework.data.util.Pair;
 
-import com.pokerapp.domain.user.Player;
 import com.pokerapp.domain.card.Card;
-
+import com.pokerapp.domain.user.Player;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.util.Pair;
 
 @Getter
 @Setter
@@ -22,23 +22,32 @@ public class Round {
     private Long id;
 
     @OneToOne(cascade = CascadeType.ALL)
-    private Stage pre_flop;
+    private Stage preFlop;
+
     @OneToOne(cascade = CascadeType.ALL)
     private Stage flop;
+
     @OneToOne(cascade = CascadeType.ALL)
     private Stage turn;
+
     @OneToOne(cascade = CascadeType.ALL)
     private Stage river;
-    @ManyToOne
-    private Game game;
-    @ManyToOne
-    private List<Player> winner;
-    @ManyToMany 
-    private List<Player> players;
 
+    @ManyToOne
+    @JoinColumn(name = "game_id")
+    private Game game;
+
+    @ManyToMany
+    private List<Player> winner = new ArrayList<>();
+
+    @ManyToMany
+    private List<Player> players = new ArrayList<>();
+
+    @Transient
     private Map<Player, Pair<Card, Card>> playerHands;
 
-    private List<Card> communityCards;
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<Card> communityCards = new ArrayList<>();
 
     private int playerCount;
 }

@@ -2,6 +2,7 @@ package com.pokerapp.config;
 
 import com.pokerapp.domain.user.User;
 import com.pokerapp.repository.UserRepository;
+import com.pokerapp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +17,9 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private UserService userService;
+
     @Override
     public void run(String... args) {
         // Check if admin user exists
@@ -28,7 +32,8 @@ public class DataInitializer implements CommandLineRunner {
             adminUser.setRole("ROLE_ADMIN");
             adminUser.setBalance(50000); // Give admin a higher starting balance
 
-            userRepository.save(adminUser);
+            User user = userRepository.save(adminUser);
+            userService.createPlayer(user.getId());
 
             System.out.println("Admin user created with username: Hoerter and password: admin123");
         }
