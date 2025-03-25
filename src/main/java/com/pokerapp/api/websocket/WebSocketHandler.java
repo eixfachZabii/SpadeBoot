@@ -66,10 +66,19 @@ public class WebSocketHandler {
         Optional<Player> playerOpt = playerRepository.findByUserId(currentUser.getId());
         if (playerOpt.isEmpty()) {
             logger.error("Player not found for user: {}", currentUser.getUsername());
+            sendErrorToClient(principal.getName(), "Player not found");
             return;
         }
 
         Player player = playerOpt.get();
+
+        // Verify player is actually at this table
+        if (player.getCurrentTableId() == null || !player.getCurrentTableId().equals(tableId)) {
+            logger.error("Player {} attempted to connect to table {} but isn't registered there",
+                    player.getId(), tableId);
+            sendErrorToClient(principal.getName(), "You are not a member of this table");
+            return;
+        }
 
         // Register this session
         registerPlayerSession(tableId, player.getId(), sessionId, principal.getName());
@@ -85,6 +94,17 @@ public class WebSocketHandler {
                 connectMessage);
 
         logger.info("Player {} connected to table {}", player.getId(), tableId);
+    }
+
+    private void sendErrorToClient(String username, String errorMessage) {
+        Map<String, Object> errorPayload = new HashMap<>();
+        errorPayload.put("type", "ERROR");
+        errorPayload.put("message", errorMessage);
+
+        messagingTemplate.convertAndSendToUser(
+                username,
+                "/queue/errors",
+                errorPayload);
     }
 
 
