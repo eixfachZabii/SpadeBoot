@@ -16,11 +16,21 @@ public class WebSocketSecurityConfig {
     public AuthorizationManager<org.springframework.messaging.Message<?>> messageAuthorizationManager(
             MessageMatcherDelegatingAuthorizationManager.Builder messages) {
         return messages
-                // Require authentication for all connections
-                .simpTypeMatchers(SimpMessageType.CONNECT).authenticated()
-                // Validate table membership via custom channel interceptor
-                .simpDestMatchers("/app/tables/*/connect").authenticated()
-                .simpSubscribeDestMatchers("/topic/tables/*/**").authenticated()
+                // Explicitly permit connect, disconnect, heartbeat, and unsubscribe messages
+                .simpTypeMatchers(SimpMessageType.CONNECT,
+                        SimpMessageType.DISCONNECT,
+                        SimpMessageType.HEARTBEAT,
+                        SimpMessageType.UNSUBSCRIBE).permitAll()
+
+                // User must be authenticated to send messages to application destinations
+                .simpDestMatchers("/app/**").authenticated()
+
+                // User must be authenticated to subscribe to destinations
+                // Our custom interceptor will handle the table-specific authorization
+                .simpSubscribeDestMatchers("/topic/tables/**").authenticated()
+                .simpSubscribeDestMatchers("/user/**").authenticated()
+
+                // Default fallback - authenticated for anything not explicitly configured
                 .anyMessage().authenticated()
                 .build();
     }
