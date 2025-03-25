@@ -7,63 +7,58 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 
-@Configuration
-@EnableWebSocketMessageBroker
-public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    /**
+     * Configures the WebSocket connection endpoint and message broker.
+     * This is the primary configuration class for WebSocket functionality.
+     */
+    @Configuration
+    @EnableWebSocketMessageBroker
+    public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    @Autowired
-    private TableMembershipInterceptor tableMembershipInterceptor;
+        @Autowired
+        private TableMembershipInterceptor tableMembershipInterceptor;
 
+        /**
+         * Configures the message broker that will handle routing messages
+         * between clients and destinations.
+         *
+         * @param registry The message broker registry
+         */
+        @Override
+        public void configureMessageBroker(MessageBrokerRegistry registry) {
+            // Enable a simple in-memory broker for topics
+            // /topic/tables/{tableId} will be used for table messages
+            registry.enableSimpleBroker("/topic");
 
-    /*
-        * CLIENT                              SERVER
-        |                                   |
-        |-- SEND /app/tables/123/action --->| → @MessageMapping processes
-        |                                   |
-        |<--- SUBSCRIBE /topic/tables/123 --|
-        |                                   |
-        |<--- MESSAGE /topic/tables/123 ----| ← convertAndSend() broadcasts
-        |                                   |
-        |<-- SUBSCRIBE /user/queue/private -|
-        |                                   |
-        |<-- MESSAGE /user/queue/private ---| ← convertAndSendToUser() to specific user
-        *
-        *  |
-        *  |
-        *  \/
-   */
+            // Set the application destination prefix for controller endpoints
+            // Client will send messages to /app/... to reach @MessageMapping methods
+            registry.setApplicationDestinationPrefixes("/app");
+        }
+        
+        /**
+         * Registers the STOMP endpoint that clients will use to connect.
+         *
+         * @param registry The STOMP endpoint registry
+         */
+        @Override
+        public void registerStompEndpoints(StompEndpointRegistry registry) {
+            // Register the /ws endpoint, enable SockJS fallback options
+            registry.addEndpoint("/ws")
+                    .setAllowedOrigins("*") // Consider restricting this in production
+                    .withSockJS();
+        }
 
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // Enable simple broker for topic and queue destinations
-        registry.enableSimpleBroker("/topic", "/queue");
-        // Set prefix for application destinations
-        registry.setApplicationDestinationPrefixes("/app");
-        // Set prefix for user-specific destinations
-        registry.setUserDestinationPrefix("/user");
+        /**
+         * Configures the client inbound channel to use our custom interceptor.
+         * This channel handles messages from clients to the server.
+         *
+         * @param registration The channel registration
+         */
+        @Override
+        public void configureClientInboundChannel(ChannelRegistration registration) {
+            // Add the table membership interceptor to verify
+            // users can only subscribe to tables they've joined
+            registration.interceptors(tableMembershipInterceptor);
+        }
     }
-
-
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws")
-                .setAllowedOrigins("*")
-                .withSockJS();
-    }
-
-    @Override
-    public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
-        // Configure message size limits and timeouts
-        registration.setMessageSizeLimit(65536) // 64KB
-                .setSendBufferSizeLimit(512 * 1024) // 512KB
-                .setSendTimeLimit(20000); // 20 seconds
-    }
-
-    @Override
-    public void configureClientInboundChannel(ChannelRegistration registration) {
-        // Register the table membership interceptor for inbound messages
-        registration.interceptors(tableMembershipInterceptor);
-    }
-}

@@ -99,7 +99,6 @@ public class GameController {
             gameStartedMessage.put("playerCount", players.size());
 
             webSocketHandler.sendToTable(tableId,
-                    "/topic/tables/" + tableId + "/game",
                     gameStartedMessage);
 
             // Return success response
@@ -159,7 +158,6 @@ public class GameController {
             gameEndedMessage.put("tableId", tableId);
 
             webSocketHandler.sendToTable(tableId,
-                    "/topic/tables/" + tableId + "/game",
                     gameEndedMessage);
 
             // Return success response
