@@ -6,6 +6,10 @@ import LobbySystem from "./LobbySystem";
 import CardScanner from "../components/game/CardScanner";
 import ActionPanel from "../components/game/ActionPanel";
 import PokerTable from "../components/game/PokerTable";
+// Import WebSocketService
+import WebSocketService from "../services/WebSocketService";
+
+
 
 /**
  * Home page component that displays either the lobby or the poker table UI
@@ -29,6 +33,10 @@ function HomePage({ socket, socketConnected, darkMode, user, onTableStatusChange
   const [atTable, setAtTable] = useState(false);
   const [checkingTableStatus, setCheckingTableStatus] = useState(false);
   const [currChips, setCurrChips] = useState(0);
+
+  // Add these state variables in your HomePage component
+  const [wsSubscriptionId, setWsSubscriptionId] = useState(null);
+  const [tableMessages, setTableMessages] = useState([]);
 
   // Error state
   const [error, setError] = useState("");
@@ -70,6 +78,76 @@ function HomePage({ socket, socketConnected, darkMode, user, onTableStatusChange
     }
   };
 
+
+  // Add this function to handle WebSocket messages
+  const handleTableMessage = (message) => {
+    console.log("WebSocket message received:", message);
+    
+    // Add the message to our state
+    setTableMessages(prevMessages => [...prevMessages, message]);
+    
+    // Handle different message types
+    switch (message.type) {
+      case "PLAYER_CONNECTED":
+        setActionStatus(`Player ${message.playerName} connected`);
+        setTimeout(() => setActionStatus(""), 3000);
+        break;
+      case "PLAYER_DISCONNECTED":
+        setActionStatus(`Player ${message.playerName} disconnected`);
+        setTimeout(() => setActionStatus(""), 3000);
+        break;
+      // Add more message types as needed
+      default:
+        // Other message types
+        break;
+    }
+  };
+
+  // Add this function to connect to WebSocket
+  const connectToTableWebSocket = async (tableId) => {
+    try {
+      // Initialize WebSocket service
+      WebSocketService.init("http://localhost:8080/ws");
+      
+      // Connect to WebSocket server
+      await WebSocketService.connect();
+      
+      // Subscribe to table
+      const subscriptionId = WebSocketService.subscribeToTable(tableId, handleTableMessage);
+      setWsSubscriptionId(subscriptionId);
+      
+      // Announce presence
+      WebSocketService.sendToTable(tableId, {
+        type: "PLAYER_JOINED",
+        playerName: user.username
+      });
+      
+      console.log(`Connected to table ${tableId} WebSocket`);
+    } catch (error) {
+      console.error("WebSocket connection error:", error);
+      setError("Failed to connect to table WebSocket: " + error.message);
+    }
+  };
+
+  // Add this function to disconnect from WebSocket
+  const disconnectFromTableWebSocket = () => {
+    if (wsSubscriptionId) {
+      if (currentTable) {
+        // Announce leaving
+        WebSocketService.sendToTable(currentTable.id, {
+          type: "PLAYER_LEFT",
+          playerName: user.username
+        });
+      }
+      
+      // Unsubscribe
+      WebSocketService.unsubscribe(wsSubscriptionId);
+      setWsSubscriptionId(null);
+      setTableMessages([]);
+      console.log("Disconnected from table WebSocket");
+    }
+  };
+
   // Function to check table status using the dedicated endpoint
   const checkTableStatus = async () => {
     if (!user) {
@@ -107,6 +185,7 @@ function HomePage({ socket, socketConnected, darkMode, user, onTableStatusChange
   };
 
   // Function to join a table
+ // Update handleJoinTable function to connect to WebSocket
   const handleJoinTable = async (tableId, buyIn) => {
     if (!user) {
       setError("You must be logged in to join a table");
@@ -118,26 +197,25 @@ function HomePage({ socket, socketConnected, darkMode, user, onTableStatusChange
     setError("");
 
     try {
-      // If buy-in is provided, it's a new join
-      if (buyIn) {
-        await ApiService.joinTable(tableId, buyIn);
+      // Join table via API
+      const joinResponse = await ApiService.joinTable(tableId, buyIn);
+      console.log("Join table response:", joinResponse);
 
-        // Get the updated balance after joining
-        await fetchAndUpdateUserBalance();
-      }
+      // Connect to WebSocket
+      await connectToTableWebSocket(joinResponse.tableId);
 
-      // Check table status again to update the UI
+      // Update UI
       await checkTableStatus();
       await updateChips();
     } catch (error) {
       setError("Failed to join table: " + (error.message || "Unknown error"));
-      setTimeout(() => setError(""), 3000);
     } finally {
       setIsLoading(false);
     }
   };
 
   // Function to leave a table
+  // Update handleLeaveTable function to disconnect from WebSocket
   const handleLeaveTable = async () => {
     if (!currentTable) return;
 
@@ -145,17 +223,17 @@ function HomePage({ socket, socketConnected, darkMode, user, onTableStatusChange
     setError("");
 
     try {
+      // Disconnect from WebSocket
+      disconnectFromTableWebSocket();
+      
+      // Leave table via API
       await ApiService.leaveTable(currentTable.id);
 
-      // Get the updated balance after leaving
-      await fetchAndUpdateUserBalance();
-
-      // Check table status again to update the UI
+      // Update UI
       await checkTableStatus();
       await updateChips();
     } catch (error) {
       setError("Failed to leave table: " + (error.message || "Unknown error"));
-      setTimeout(() => setError(""), 3000);
     } finally {
       setIsLoading(false);
     }
@@ -210,6 +288,13 @@ function HomePage({ socket, socketConnected, darkMode, user, onTableStatusChange
       setIsLoading(false);
     }
   };
+
+  // Add cleanup effect for WebSocket
+  useEffect(() => {
+    return () => {
+      disconnectFromTableWebSocket();
+    };
+  }, []);
 
   // Show loading state while checking table status
   if (checkingTableStatus) {

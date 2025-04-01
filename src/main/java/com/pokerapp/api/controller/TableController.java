@@ -13,7 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/tables")
@@ -55,11 +58,23 @@ public class TableController {
     }
 
     @PostMapping("/{id}/join")
-    public ResponseEntity<TableDto> joinTable(@PathVariable Long id, @RequestParam Integer buyIn) {
-        // Pass the User ID, not the Player ID - the service will handle conversion
+    public ResponseEntity<Map<String, Object>> joinTable(@PathVariable Long id, @RequestParam Integer buyIn) {
+        // Get the current user
         Long userId = userService.getCurrentUser().getId();
         userService.createPlayer(userId);
-        return ResponseEntity.ok(tableService.joinTable(id, userId, buyIn));
+
+        // Join the table through the service
+        TableDto tableDto = tableService.joinTable(id, userId, buyIn);
+
+        // Return table data along with WebSocket connection info
+        Map<String, Object> response = new HashMap<>();
+        response.put("table", tableDto);
+        response.put("userId", userId);
+        response.put("tableId", id);
+        response.put("websocketEndpoint", "/ws");
+        response.put("tableTopic", "/topic/tables/" + id);
+
+        return ResponseEntity.ok(response);
     }
 
 

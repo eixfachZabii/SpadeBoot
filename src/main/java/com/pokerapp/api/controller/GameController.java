@@ -1,6 +1,6 @@
 package com.pokerapp.api.controller;
 
-import com.pokerapp.api.websocket.WebSocketHandler;
+import com.pokerapp.api.websocket._WebSocketHandler;
 import com.pokerapp.domain.game.PokerTable;
 import com.pokerapp.domain.user.Player;
 import com.pokerapp.domain.user.User;
@@ -39,7 +39,7 @@ public class GameController {
     private UserService userService;
 
     @Autowired
-    private WebSocketHandler webSocketHandler;
+    private _WebSocketHandler webSocketHandler;
 
     // Map to store active game sessions by table ID
     private final Map<Long, GameSession> activeGames = new ConcurrentHashMap<>();

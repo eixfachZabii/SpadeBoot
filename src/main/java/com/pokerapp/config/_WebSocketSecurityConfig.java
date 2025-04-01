@@ -10,10 +10,10 @@ import org.springframework.security.messaging.access.intercept.MessageMatcherDel
 /**
  * Configures security for WebSocket connections.
  * This class defines authorization rules for different types of STOMP messages.
- */
+ * /
 @Configuration
 @EnableWebSocketSecurity
-public class WebSocketSecurityConfig {
+public class _WebSocketSecurityConfig {
 
     /**
      * Creates an authorization manager for WebSocket messages.
@@ -21,7 +21,7 @@ public class WebSocketSecurityConfig {
      *
      * @param messages Builder for message authorization rules
      * @return An authorization manager for WebSocket messages
-     */
+     * /
     @Bean
     public AuthorizationManager<org.springframework.messaging.Message<?>> messageAuthorizationManager(
             MessageMatcherDelegatingAuthorizationManager.Builder messages) {
@@ -47,3 +47,4 @@ public class WebSocketSecurityConfig {
                 .build();
     }
 }
+*/

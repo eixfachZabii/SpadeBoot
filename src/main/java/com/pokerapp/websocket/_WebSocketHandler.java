@@ -31,10 +31,10 @@ import java.util.concurrent.TimeoutException;
  * 2. Send messages to tables or specific players
  * 3. Handle request-response patterns with timeout support
  * 4. Manage player disconnection
- */
+ *
 @Controller
-public class WebSocketHandler {
-    private static final Logger logger = LoggerFactory.getLogger(WebSocketHandler.class);
+public class _WebSocketHandler {
+    private static final Logger logger = LoggerFactory.getLogger(_WebSocketHandler.class);
 
     @Autowired
     private SimpMessageSendingOperations messagingTemplate;
@@ -64,7 +64,7 @@ public class WebSocketHandler {
      * @param tableId The table ID the message is for
      * @param message The message content
      * @param headerAccessor Message headers including session info
-     */
+     *
     @MessageMapping("/tables/{tableId}/message")
     public void handleTableMessage(
             @DestinationVariable Long tableId,
@@ -94,7 +94,7 @@ public class WebSocketHandler {
      * @param sessionId The WebSocket session ID
      * @param principalName The principal name (for user-specific messaging)
      * @param username The display name for the player
-     */
+     *
     public void registerPlayerConnection(Long tableId, Long playerId, String sessionId,
                                          String principalName, String username) {
         // Create player info record
@@ -125,7 +125,7 @@ public class WebSocketHandler {
      * Called by WebSocketEventListener when a client disconnects.
      *
      * @param sessionId The WebSocket session ID that disconnected
-     */
+     *
     public void handlePlayerDisconnection(String sessionId) {
         TablePlayerInfo info = sessionRegistry.get(sessionId);
         if (info == null) {
@@ -151,7 +151,7 @@ public class WebSocketHandler {
      * Called during player disconnection to clean up tracking maps.
      *
      * @param sessionId The WebSocket session ID to deregister
-     */
+     *
     private void deregisterPlayerSession(String sessionId) {
         TablePlayerInfo info = sessionRegistry.remove(sessionId);
         if (info != null) {
@@ -172,7 +172,7 @@ public class WebSocketHandler {
      *
      * @param tableId The table ID to send to
      * @param message The message to send
-     */
+     *
     public void sendToTable(Long tableId, Object message) {
         messagingTemplate.convertAndSend(
                 "/topic/tables/" + tableId + "/messages",
@@ -186,7 +186,7 @@ public class WebSocketHandler {
      * @param playerId The player ID to send to
      * @param message The message to send
      * @return True if message was sent, false if player not found
-     */
+     *
     public boolean sendToPlayer(Long tableId, Long playerId, Object message) {
         Map<Long, PlayerInfo> tablePlayers = tablePlayerMap.get(tableId);
         if (tablePlayers == null) return false;
@@ -213,7 +213,7 @@ public class WebSocketHandler {
      * @return The player's response as a Map
      * @throws TimeoutException If player doesn't respond within timeout period
      * @throws RuntimeException If player is not connected or other errors occur
-     */
+     *
     public Map<String, Object> waitForPlayerResponse(Long tableId, Long playerId,
                                                      Map<String, Object> message,
                                                      int timeoutSeconds)
@@ -253,7 +253,7 @@ public class WebSocketHandler {
      * @param playerId The player ID to disconnect
      * @param reason Optional reason for disconnection
      * @return True if disconnect command was sent, false if player not found
-     */
+     *
     public boolean disconnectPlayer(Long tableId, Long playerId, String reason) {
         Map<Long, PlayerInfo> tablePlayers = tablePlayerMap.get(tableId);
         if (tablePlayers == null) return false;
@@ -297,7 +297,7 @@ public class WebSocketHandler {
      * @param tableId The table ID
      * @param playerId The player ID to disconnect
      * @return True if disconnect command was sent, false if player not found
-     */
+     *
     public boolean disconnectPlayer(Long tableId, Long playerId) {
         return disconnectPlayer(tableId, playerId, null);
     }
@@ -308,7 +308,7 @@ public class WebSocketHandler {
      * @param tableId The table ID
      * @param playerId The player ID
      * @return True if player is connected, false otherwise
-     */
+     *
     public boolean isPlayerConnected(Long tableId, Long playerId) {
         Map<Long, PlayerInfo> tablePlayers = tablePlayerMap.get(tableId);
         if (tablePlayers == null) return false;
@@ -326,7 +326,7 @@ public class WebSocketHandler {
      *
      * @param tableId The table ID
      * @return Map of player IDs to usernames
-     */
+     *
     public Map<Long, String> getConnectedPlayers(Long tableId) {
         Map<Long, String> result = new HashMap<>();
         Map<Long, PlayerInfo> tablePlayers = tablePlayerMap.get(tableId);
@@ -344,7 +344,7 @@ public class WebSocketHandler {
      *
      * @param tableId The table ID
      * @return The number of connected players
-     */
+     *
     public int getConnectedPlayerCount(Long tableId) {
         Map<Long, PlayerInfo> tablePlayers = tablePlayerMap.get(tableId);
         return tablePlayers != null ? tablePlayers.size() : 0;
@@ -356,7 +356,7 @@ public class WebSocketHandler {
      * @param sessionId The WebSocket session ID
      * @param principalName The Spring Security principal name (for user-specific messaging)
      * @param username The display name of the player
-     */
+     *
     private record PlayerInfo(String sessionId, String principalName, String username) {}
 
     /**
@@ -365,6 +365,8 @@ public class WebSocketHandler {
      * @param tableId The table ID
      * @param playerId The player ID
      * @param username The display name of the player
-     */
+     *
     private record TablePlayerInfo(Long tableId, Long playerId, String username) {}
 }
+
+ */

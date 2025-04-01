@@ -15,6 +15,9 @@ const socket = io("http://localhost:5001", {
   reconnectionDelay: 10000,
 });
 
+// Initialize WebSocket service for game communication
+WebSocketService.init("ws://localhost:8080/ws/websocket");
+
 /**
  * Main App component
  * Handles global state, navigation, and authentication

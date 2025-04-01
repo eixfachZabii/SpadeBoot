@@ -12,21 +12,21 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 /**
  * Listens for WebSocket lifecycle events and handles them.
  * Primarily responsible for managing WebSocket connections and disconnections.
- */
+ *
 @Component
-public class WebSocketEventListener {
+public class _WebSocketEventListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(WebSocketEventListener.class);
+    private static final Logger logger = LoggerFactory.getLogger(_WebSocketEventListener.class);
 
     @Autowired
-    private WebSocketHandler webSocketHandler;
+    private _WebSocketHandler webSocketHandler;
 
     /**
      * Handles WebSocket connection events.
      * Logs when a new WebSocket connection is established.
      *
      * @param event The session connected event
-     */
+     *
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
@@ -39,7 +39,7 @@ public class WebSocketEventListener {
      * Notifies the WebSocketHandler when a client disconnects.
      *
      * @param event The session disconnect event
-     */
+     *
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
@@ -51,3 +51,5 @@ public class WebSocketEventListener {
         webSocketHandler.handlePlayerDisconnection(sessionId);
     }
 }
+
+ */
