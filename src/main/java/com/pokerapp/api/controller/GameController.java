@@ -1,6 +1,5 @@
 package com.pokerapp.api.controller;
 
-import com.pokerapp.api.websocket._WebSocketHandler;
 import com.pokerapp.domain.game.PokerTable;
 import com.pokerapp.domain.user.Player;
 import com.pokerapp.domain.user.User;
@@ -9,6 +8,7 @@ import com.pokerapp.repository.PlayerRepository;
 import com.pokerapp.repository.TableRepository;
 import com.pokerapp.service.UserService;
 import com.pokerapp.session.GameSession;
+import com.pokerapp.websocket.TableWebSocketHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,7 @@ public class GameController {
     private UserService userService;
 
     @Autowired
-    private _WebSocketHandler webSocketHandler;
+    private TableWebSocketHandler webSocketHandler;
 
     // Map to store active game sessions by table ID
     private final Map<Long, GameSession> activeGames = new ConcurrentHashMap<>();
