@@ -16,8 +16,8 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
     @EnableWebSocketMessageBroker
     public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-        @Autowired
-        private TableMembershipInterceptor tableMembershipInterceptor;
+        //@Autowired
+        //private TableMembershipInterceptor tableMembershipInterceptor;
 
         /**
          * Configures the message broker that will handle routing messages
@@ -55,10 +55,11 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
          *
          * @param registration The channel registration
          */
-        @Override
+        /*@Override
         public void configureClientInboundChannel(ChannelRegistration registration) {
             // Add the table membership interceptor to verify
             // users can only subscribe to tables they've joined
             registration.interceptors(tableMembershipInterceptor);
         }
+         */
     }

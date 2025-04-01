@@ -1,4 +1,4 @@
-package com.pokerapp.config;
+/*package com.pokerapp.config;
 
 import com.pokerapp.api.websocket.WebSocketHandler;
 import com.pokerapp.domain.user.Player;
@@ -21,10 +21,10 @@ import org.springframework.stereotype.Component;
 import java.security.Principal;
 import java.util.Optional;
 
-/**
+/ **
  * Intercepts WebSocket messages to enforce table access control and manage player connections.
  * This interceptor combines access checking and connection management in a single place.
- */
+ * /
 @Component
 public class TableMembershipInterceptor implements ChannelInterceptor {
 
@@ -49,7 +49,7 @@ public class TableMembershipInterceptor implements ChannelInterceptor {
      * @param message The message being sent
      * @param channel The channel the message is being sent through
      * @return The message (possibly modified) or null to block the message
-     */
+     * /
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
@@ -120,7 +120,7 @@ public class TableMembershipInterceptor implements ChannelInterceptor {
      *
      * @param destination The destination path like "/topic/tables/123/actions"
      * @return The table ID as a Long, or null if it can't be extracted
-     */
+     * /
     private Long extractTableId(String destination) {
         String[] parts = destination.split("/");
         if (parts.length >= 4) {
@@ -134,3 +134,5 @@ public class TableMembershipInterceptor implements ChannelInterceptor {
         return null;
     }
 }
+
+*/
