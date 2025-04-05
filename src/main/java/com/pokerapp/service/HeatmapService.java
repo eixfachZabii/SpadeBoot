@@ -2,6 +2,9 @@
 package com.pokerapp.service;
 
 import jakarta.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -121,49 +124,49 @@ public class HeatmapService {
         data.add(new HeatmapDataPoint("8", "3", 0.37, "o\n 98"));
         data.add(new HeatmapDataPoint("8", "2", 0.37, "o\n 99"));
 
-        data.add(new HeatmapDataPoint("7", "A", 0.61, "s\n 7"));
-        data.add(new HeatmapDataPoint("7", "K", 0.58, "s\n 10"));
-        data.add(new HeatmapDataPoint("7", "Q", 0.54, "s\n 12"));
-        data.add(new HeatmapDataPoint("7", "J", 0.52, "s\n 15"));
-        data.add(new HeatmapDataPoint("7", "T", 0.51, "s\n 19"));
-        data.add(new HeatmapDataPoint("7", "9", 0.49, "s\n 23"));
-        data.add(new HeatmapDataPoint("7", "8", 0.48, "s\n 27"));
-        data.add(new HeatmapDataPoint("7", "7", 0.66, "\n 1"));
-        data.add(new HeatmapDataPoint("7", "6", 0.42, "o\n 72"));
-        data.add(new HeatmapDataPoint("7", "5", 0.41, "o\n 72"));
-        data.add(new HeatmapDataPoint("7", "4", 0.39, "o\n 72"));
-        data.add(new HeatmapDataPoint("7", "3", 0.37, "o\n 72"));
-        data.add(new HeatmapDataPoint("7", "2", 0.31, "o\n 72"));
+        data.add(new HeatmapDataPoint("7", "A", 0.61, "s\n 13"));
+        data.add(new HeatmapDataPoint("7", "K", 0.58, "s\n 19"));
+        data.add(new HeatmapDataPoint("7", "Q", 0.54, "s\n 26"));
+        data.add(new HeatmapDataPoint("7", "J", 0.52, "s\n 27"));
+        data.add(new HeatmapDataPoint("7", "T", 0.51, "s\n 25"));
+        data.add(new HeatmapDataPoint("7", "9", 0.49, "s\n 24"));
+        data.add(new HeatmapDataPoint("7", "8", 0.48, "s\n 21"));
+        data.add(new HeatmapDataPoint("7", "7", 0.66, "s\n 12"));
+        data.add(new HeatmapDataPoint("7", "6", 0.42, "o\n 57"));
+        data.add(new HeatmapDataPoint("7", "5", 0.41, "o\n 65"));
+        data.add(new HeatmapDataPoint("7", "4", 0.39, "o\n 78"));
+        data.add(new HeatmapDataPoint("7", "3", 0.37, "o\n 93"));
+        data.add(new HeatmapDataPoint("7", "2", 0.31, "o\n 100"));
 
-        data.add(new HeatmapDataPoint("6", "A", 0.6, "s\n 9"));
-        data.add(new HeatmapDataPoint("6", "K", 0.57, "s\n 11"));
-        data.add(new HeatmapDataPoint("6", "Q", 0.54, "s\n 13"));
-        data.add(new HeatmapDataPoint("6", "J", 0.51, "s\n 17"));
-        data.add(new HeatmapDataPoint("6", "T", 0.49, "s\n 21"));
-        data.add(new HeatmapDataPoint("6", "9", 0.47, "s\n 25"));
-        data.add(new HeatmapDataPoint("6", "8", 0.46, "s\n 30"));
-        data.add(new HeatmapDataPoint("6", "7", 0.45, "s\n 34"));
-        data.add(new HeatmapDataPoint("6", "6", 0.63, "\n 1"));
-        data.add(new HeatmapDataPoint("6", "5", 0.4, "o\n 72"));
-        data.add(new HeatmapDataPoint("6", "4", 0.38, "o\n 72"));
-        data.add(new HeatmapDataPoint("6", "3", 0.36, "o\n 72"));
-        data.add(new HeatmapDataPoint("6", "2", 0.32, "o\n 72"));
+        data.add(new HeatmapDataPoint("6", "A", 0.6, "s\n 14"));
+        data.add(new HeatmapDataPoint("6", "K", 0.57, "s\n 24"));
+        data.add(new HeatmapDataPoint("6", "Q", 0.54, "s\n 28"));
+        data.add(new HeatmapDataPoint("6", "J", 0.51, "s\n 33"));
+        data.add(new HeatmapDataPoint("6", "T", 0.49, "s\n 31"));
+        data.add(new HeatmapDataPoint("6", "9", 0.47, "s\n 29"));
+        data.add(new HeatmapDataPoint("6", "8", 0.46, "s\n 27"));
+        data.add(new HeatmapDataPoint("6", "7", 0.45, "s\n 25"));
+        data.add(new HeatmapDataPoint("6", "6", 0.63, "\n 16"));
+        data.add(new HeatmapDataPoint("6", "5", 0.4, "o\n 58"));
+        data.add(new HeatmapDataPoint("6", "4", 0.38, "o\n 70"));
+        data.add(new HeatmapDataPoint("6", "3", 0.36, "o\n 81"));
+        data.add(new HeatmapDataPoint("6", "2", 0.32, "o\n 95"));
 
-        data.add(new HeatmapDataPoint("5", "A", 0.6, "s\n 11"));
-        data.add(new HeatmapDataPoint("5", "K", 0.56, "s\n 13"));
-        data.add(new HeatmapDataPoint("5", "Q", 0.53, "s\n 17"));
-        data.add(new HeatmapDataPoint("5", "J", 0.5, "s\n 21"));
-        data.add(new HeatmapDataPoint("5", "T", 0.47, "s\n 25"));
-        data.add(new HeatmapDataPoint("5", "9", 0.46, "s\n 30"));
-        data.add(new HeatmapDataPoint("5", "8", 0.45, "s\n 34"));
-        data.add(new HeatmapDataPoint("5", "7", 0.44, "s\n 38"));
-        data.add(new HeatmapDataPoint("5", "6", 0.43, "s\n 41"));
-        data.add(new HeatmapDataPoint("5", "5", 0.6, "\n 1"));
-        data.add(new HeatmapDataPoint("5", "4", 0.38, "o\n 72"));
+        data.add(new HeatmapDataPoint("5", "A", 0.6, "s\n 12"));
+        data.add(new HeatmapDataPoint("5", "K", 0.56, "s\n 25"));
+        data.add(new HeatmapDataPoint("5", "Q", 0.53, "s\n 29"));
+        data.add(new HeatmapDataPoint("5", "J", 0.5, "s\n 35"));
+        data.add(new HeatmapDataPoint("5", "T", 0.47, "s\n 40"));
+        data.add(new HeatmapDataPoint("5", "9", 0.46, "s\n 38"));
+        data.add(new HeatmapDataPoint("5", "8", 0.45, "s\n 33"));
+        data.add(new HeatmapDataPoint("5", "7", 0.44, "s\n 28"));
+        data.add(new HeatmapDataPoint("5", "6", 0.43, "s\n 27"));
+        data.add(new HeatmapDataPoint("5", "5", 0.6, "\n 20"));
+        data.add(new HeatmapDataPoint("5", "4", 0.38, "o\n 62"));
         data.add(new HeatmapDataPoint("5", "3", 0.36, "o\n 72"));
-        data.add(new HeatmapDataPoint("5", "2", 0.34, "o\n 72"));
+        data.add(new HeatmapDataPoint("5", "2", 0.34, "o\n 84"));
 
-        data.add(new HeatmapDataPoint("4", "A", 0.59, "s\n 13"));
+        data.add(new HeatmapDataPoint("4", "A", 0.59, "s\n 14"));
         data.add(new HeatmapDataPoint("4", "K", 0.55, "s\n 25"));
         data.add(new HeatmapDataPoint("4", "Q", 0.52, "s\n 29"));
         data.add(new HeatmapDataPoint("4", "J", 0.49, "s\n 37"));
@@ -206,7 +209,15 @@ public class HeatmapService {
         data.add(new HeatmapDataPoint("2", "2", 0.5, "\n 24"));
 
         return data;
-
-
     }
-}
+
+        @Data
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class HeatmapDataPoint {
+            private String x;
+            private String y;
+            private Double heat;
+            private String symbol;
+        }
+    }
