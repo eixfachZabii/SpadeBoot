@@ -1,6 +1,8 @@
 // src/main/java/com/pokerapp/service/SpotifyService.java
 package com.pokerapp.service;
 
+import core.GLA;
+import genius.SongSearch;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -9,9 +11,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
@@ -26,19 +28,15 @@ public class SpotifyService {
     @Value("${spotify.redirect-uri}")
     private String redirectUri;
 
-    @Value("${genius.access-token}")
-    private String geniusAccessToken;
-
     private final RestTemplate restTemplate;
-
-    // Lyrics extraction patterns
-    private final Pattern unwantedLinePattern = Pattern.compile(".*\\b(contributors|translations|lyrics)\\b.*", Pattern.CASE_INSENSITIVE);
+    private final GLA geniusLyricsApi = new GLA();
     private final Pattern bracketsPattern = Pattern.compile("\\[.*?\\]");
-    private final Pattern numberEmbedPattern = Pattern.compile("\\d+embed", Pattern.CASE_INSENSITIVE);
 
     public SpotifyService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
+
+    // ===== Spotify Authentication Methods =====
 
     public String createAuthorizationUrl(String state) {
         return UriComponentsBuilder
@@ -106,130 +104,112 @@ public class SpotifyService {
         return result;
     }
 
-    // ===== Lyrics functionality (moved from LyricsService) =====
+    // ===== Genius Lyrics Methods =====
 
+    /**
+     * Searches for lyrics by artist and title using the Genius API
+     * @param artist Artist name
+     * @param title Song title
+     * @return Map containing the song details and lyrics
+     */
     public Map<String, Object> fetchLyrics(String artist, String title) {
         Map<String, Object> result = new HashMap<>();
         result.put("artist", artist);
         result.put("title", title);
 
         try {
-            // Search for song on Genius
-            String searchUrl = "https://api.genius.com/search?q=" + artist + " " + title;
+            // Search for song with the library
+            SongSearch search = geniusLyricsApi.search(artist + " " + title);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + geniusAccessToken);
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-
-            ResponseEntity<Map> searchResponse = restTemplate.exchange(
-                    searchUrl,
-                    HttpMethod.GET,
-                    entity,
-                    Map.class
-            );
-
-            // Extract song ID from search results
-            Map<String, Object> searchData = searchResponse.getBody();
-            List<Map<String, Object>> hits = (List<Map<String, Object>>)
-                    ((Map<String, Object>) searchData.get("response")).get("hits");
-
-            if (hits == null || hits.isEmpty()) {
-                result.put("error", "Lyrics not found");
+            if (search.getHits().isEmpty()) {
+                result.put("error", "No lyrics found for this song");
                 return result;
             }
 
-            Map<String, Object> song = (Map<String, Object>) hits.get(0).get("result");
-            Integer songId = (Integer) song.get("id");
+            // Get the first hit
+            SongSearch.Hit hit = search.getHits().getFirst();
 
-            // Get song details including lyrics path
-            String songUrl = "https://api.genius.com/songs/" + songId;
-            ResponseEntity<Map> songResponse = restTemplate.exchange(
-                    songUrl,
-                    HttpMethod.GET,
-                    entity,
-                    Map.class
-            );
-
-            Map<String, Object> songData = songResponse.getBody();
-            String path = (String) ((Map<String, Object>)
-                    ((Map<String, Object>) songData.get("response")).get("song")).get("path");
-
-            // Make a request to the web page to scrape lyrics
-            String lyricsUrl = "https://genius.com" + path;
-            ResponseEntity<String> lyricsResponse = restTemplate.exchange(
-                    lyricsUrl,
-                    HttpMethod.GET,
-                    new HttpEntity<>(new HttpHeaders()),
-                    String.class
-            );
-
-            String htmlContent = lyricsResponse.getBody();
-            String extractedLyrics = extractLyricsFromHtml(htmlContent);
-
-            // Process the lyrics
-            String cleanedLyrics = cleanLyrics(extractedLyrics);
-
-            if (cleanedLyrics.isEmpty()) {
-                result.put("error", "Lyrics not found after filtering");
+            // Get lyrics and clean them
+            String lyrics = hit.fetchLyrics();
+            if (lyrics == null || lyrics.isEmpty()) {
+                result.put("error", "Lyrics could not be retrieved");
                 return result;
             }
 
+            // Remove bracket sections like [Chorus] if needed
+            String cleanedLyrics = bracketsPattern.matcher(lyrics).replaceAll("");
+
+            // Build result
             result.put("lyrics", cleanedLyrics);
+            result.put("title", hit.getTitle());
+            result.put("artist", hit.getArtist().getName());
+            result.put("imageUrl", hit.getImageUrl());
+
+            return result;
+
+        } catch (IOException e) {
+            result.put("error", "Error fetching lyrics: " + e.getMessage());
+            return result;
+        }
+    }
+
+    /**
+     * Create a karaoke timeline with timestamp segments
+     * @param artist Artist name
+     * @param title Song title
+     * @param duration Song duration in seconds
+     * @param chunks Number of segments to divide lyrics into
+     * @return Map containing timeline data and song information
+     */
+    public Map<String, Object> generateKaraokeTimeline(String artist, String title, int duration, int chunks) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // Get lyrics first
+            Map<String, Object> lyricsResult = fetchLyrics(artist, title);
+
+            if (lyricsResult.containsKey("error")) {
+                return lyricsResult;
+            }
+
+            String lyrics = (String) lyricsResult.get("lyrics");
+            String[] lines = lyrics.split("\n");
+
+            // Create timeline
+            int linesPerChunk = Math.max(1, lines.length / chunks);
+            double intervalDuration = (double) duration / chunks;
+
+            List<Map<String, Object>> timeline = new ArrayList<>();
+
+            for (int i = 0; i < chunks; i++) {
+                Map<String, Object> segment = new HashMap<>();
+
+                int startIndex = i * linesPerChunk;
+                int endIndex = Math.min(startIndex + linesPerChunk, lines.length);
+
+                if (startIndex >= lines.length) {
+                    break;
+                }
+
+                StringBuilder chunkText = new StringBuilder();
+                for (int j = startIndex; j < endIndex; j++) {
+                    chunkText.append(lines[j]).append("\n");
+                }
+
+                segment.put("time", i * intervalDuration);
+                segment.put("lyrics", chunkText.toString().trim());
+                timeline.add(segment);
+            }
+
+            result.put("timeline", timeline);
+            result.put("artist", lyricsResult.get("artist"));
+            result.put("title", lyricsResult.get("title"));
+            result.put("imageUrl", lyricsResult.get("imageUrl"));
             return result;
 
         } catch (Exception e) {
-            result.put("error", "An error occurred: " + e.getMessage());
+            result.put("error", "Error creating karaoke timeline: " + e.getMessage());
             return result;
         }
-    }
-
-    private String extractLyricsFromHtml(String html) {
-        // This is a simplified extraction logic
-        // In a real implementation, you'd want to use a proper HTML parser like Jsoup
-        int lyricsStart = html.indexOf("<div class=\"lyrics\">");
-        if (lyricsStart == -1) {
-            lyricsStart = html.indexOf("<div data-lyrics-container");
-        }
-
-        if (lyricsStart == -1) {
-            return "";
-        }
-
-        int lyricsEnd = html.indexOf("</div>", lyricsStart);
-        if (lyricsEnd == -1) {
-            return "";
-        }
-
-        String rawLyrics = html.substring(lyricsStart, lyricsEnd);
-        // Remove HTML tags
-        return rawLyrics.replaceAll("<[^>]*>", "");
-    }
-
-    private String cleanLyrics(String lyrics) {
-        // Split the lyrics into lines
-        String[] lines = lyrics.split("\n");
-        List<String> filteredLines = new ArrayList<>();
-
-        for (String line : lines) {
-            String trimmedLine = line.trim();
-            if (trimmedLine.isEmpty()) {
-                continue;
-            }
-
-            // Check for number embed pattern
-            if (numberEmbedPattern.matcher(trimmedLine).find()) {
-                break;
-            }
-
-            // Filter out unwanted content
-            Matcher unwantedMatcher = unwantedLinePattern.matcher(trimmedLine);
-            Matcher bracketsMatcher = bracketsPattern.matcher(trimmedLine);
-
-            if (!unwantedMatcher.matches() && !bracketsMatcher.matches()) {
-                filteredLines.add(trimmedLine);
-            }
-        }
-
-        return String.join("\n", filteredLines);
     }
 }
