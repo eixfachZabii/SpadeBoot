@@ -1,3 +1,4 @@
+// src/main/java/com/pokerapp/config/SecurityConfig.java
 package com.pokerapp.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,8 +52,19 @@ public class SecurityConfig {
                         // Public endpoints - allow both with and without trailing slash
                         .requestMatchers("/api/users/register", "/api/users/register/").permitAll()
                         .requestMatchers("/api/users/login", "/api/users/login/").permitAll()
-                        .requestMatchers("/ws/**").permitAll() // WebSocket endpoint
-                        .requestMatchers("/error").permitAll() // Error endpoint
+
+                        // Spotify endpoints that need public access
+                        .requestMatchers("/api/spotify/login").permitAll()
+                        .requestMatchers("/api/spotify/callback").permitAll()
+                        .requestMatchers("/api/spotify/refresh_token").permitAll()
+                        .requestMatchers("/api/spotify/lyrics").permitAll()
+                        .requestMatchers("/api/spotify/debug/**").permitAll()
+
+                        // WebSocket endpoints
+                        .requestMatchers("/ws/**").permitAll()
+
+                        // Error endpoint
+                        .requestMatchers("/error").permitAll()
 
                         // Admin-only endpoints
                         .requestMatchers("/api/users/{id}/roles").hasRole("ADMIN")
@@ -64,7 +76,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/tables/**").authenticated()
                         .requestMatchers("/api/games/**").authenticated()
                         .requestMatchers("/api/players/**").authenticated()
-                        .anyRequest().authenticated()
+
+                        // Default policy: require authentication
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 

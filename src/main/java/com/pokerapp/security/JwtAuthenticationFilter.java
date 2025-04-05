@@ -30,7 +30,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/users/register",
             "/api/users/register/",
             "/api/users/login",
-            "/api/users/login/");
+            "/api/users/login/",
+            "/api/spotify/login",
+            "/api/spotify/callback",
+            "/api/spotify/refresh_token",
+            "/api/spotify/lyrics",
+            "/api/spotify/debug/**",
+            "/ws/**",
+            "/error");
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 

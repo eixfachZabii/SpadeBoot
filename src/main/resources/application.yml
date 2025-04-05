@@ -13,15 +13,28 @@ spring:
     show-sql: false
 
 server:
-  port: 8080
   address: 0.0.0.0
+  port: 8080
+  ssl:
+    key-store: classpath:keystore.p12
+    key-store-password: spadeboot
+    key-store-type: PKCS12
+    key-alias: spadeboot
 
 app:
   jwt:
     secret: MIIJQgIBADANBgkqhkiG9w0BAQEFAASCCSwwggkoAgEAAoICAQCfGxo0yrpc+cYHXa6RgiK9uSaj0Mh7veuVehye6cH6wovkx6goIkcO8QmbXfBuc+8F4bkiAz+52AHt9r5yEjtaeH074iXEQT0m1qEOy515zMzp8JDwW2U/bt1myhAhc/jZvyxi8W5bBzVqSgC0bn7DnzP2UtGuE4M0yo5+My6yAvKCkraqM4J6TeYCjY8EKONjpx/E6zqbwZOMWWjEDCFavRio0uoZn84enGWB7oze8cbdllWGaEcCqPEU/Kjqg0lArE88p7KETUzFJIflgTfCfDpc6JnJigtAi7HoYQnTf1eksy02CZgS8h3ae8medW+iCAIEWmDZq47m
     expirationMs: 86400000  # 24 hours
 
-#
-#logging:
-#  level:
-#    root: OFF
+spotify:
+  client-id: 258c86af6a9e45ac8fac5185cceff480
+  client-secret: e5c969b18de0458a95552515897cd7fc
+  redirect-uri: https://localhost:8080/api/spotify/callback
+
+genius:
+  access-token: UUODLxcCpDdlIm_k8hqQvP-qYcQrfnvOB9ULnwDAS7LsQ-ZVtQwwJ7n-vUW-s2M3
+
+# Optional Logging Config
+# logging:
+#   level:
+#     root: OFF
