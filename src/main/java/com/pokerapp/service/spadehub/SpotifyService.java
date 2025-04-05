@@ -1,5 +1,5 @@
 // src/main/java/com/pokerapp/service/SpotifyService.java
-package com.pokerapp.service;
+package com.pokerapp.service.spadehub;
 
 import core.GLA;
 import genius.SongSearch;

@@ -1,5 +1,5 @@
 // src/main/java/com/pokerapp/service/HeatmapService.java
-package com.pokerapp.service;
+package com.pokerapp.service.spadehub;
 
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;

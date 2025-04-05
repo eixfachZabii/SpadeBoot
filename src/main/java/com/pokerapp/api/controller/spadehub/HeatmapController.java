@@ -1,7 +1,7 @@
 // src/main/java/com/pokerapp/api/controller/HeatmapController.java
-package com.pokerapp.api.controller;
+package com.pokerapp.api.controller.spadehub;
 
-import com.pokerapp.service.HeatmapService;
+import com.pokerapp.service.spadehub.HeatmapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,7 +1,7 @@
 // src/main/java/com/pokerapp/api/controller/SpotifyController.java
-package com.pokerapp.api.controller;
+package com.pokerapp.api.controller.spadehub;
 
-import com.pokerapp.service.SpotifyService;
+import com.pokerapp.service.spadehub.SpotifyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
