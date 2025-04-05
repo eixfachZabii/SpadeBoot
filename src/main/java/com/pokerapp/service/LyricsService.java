@@ -9,12 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class LyricsService {
@@ -129,14 +129,29 @@ public class LyricsService {
     }
 
     private String cleanLyrics(String lyrics) {
-        // Split the lyrics into lines and filter out unwanted content
-        List<String> filteredLines = Arrays.stream(lyrics.split("\n"))
-                .map(String::trim)
-                .filter(line -> !line.isEmpty())
-                .filter(line -> !unwantedLinePattern.matcher(line).matches())
-                .filter(line -> !bracketsPattern.matcher(line).matches())
-                .takeWhile(line -> !numberEmbedPattern.matcher(line).find())
-                .collect(Collectors.toList());
+        // Split the lyrics into lines
+        String[] lines = lyrics.split("\n");
+        List<String> filteredLines = new ArrayList<>();
+
+        for (String line : lines) {
+            String trimmedLine = line.trim();
+            if (trimmedLine.isEmpty()) {
+                continue;
+            }
+
+            // Check for number embed pattern
+            if (numberEmbedPattern.matcher(trimmedLine).find()) {
+                break;
+            }
+
+            // Filter out unwanted content
+            Matcher unwantedMatcher = unwantedLinePattern.matcher(trimmedLine);
+            Matcher bracketsMatcher = bracketsPattern.matcher(trimmedLine);
+
+            if (!unwantedMatcher.matches() && !bracketsMatcher.matches()) {
+                filteredLines.add(trimmedLine);
+            }
+        }
 
         return String.join("\n", filteredLines);
     }

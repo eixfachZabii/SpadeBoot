@@ -1,6 +1,7 @@
 // src/main/java/com/pokerapp/api/controller/SpotifyController.java
 package com.pokerapp.api.controller;
 
+import com.pokerapp.service.LyricsService;
 import com.pokerapp.service.SpotifyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,9 @@ public class SpotifyController {
 
     @Autowired
     private SpotifyService spotifyService;
+
+    @Autowired
+    private LyricsService lyricsService;
 
     @GetMapping("/login")
     public RedirectView login() {
@@ -55,7 +59,7 @@ public class SpotifyController {
     public ResponseEntity<Map<String, Object>> getLyrics(
             @RequestParam String artist,
             @RequestParam String title) {
-        Map<String, Object> lyrics = spotifyService.getLyrics(artist, title);
+        Map<String, Object> lyrics = lyricsService.fetchLyrics(artist, title);
         return ResponseEntity.ok(lyrics);
     }
 }
