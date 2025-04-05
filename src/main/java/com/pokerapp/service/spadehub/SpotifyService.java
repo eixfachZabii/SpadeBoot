@@ -141,10 +141,6 @@ public class SpotifyService {
 
             // Build result
             result.put("lyrics", cleanedLyrics);
-            result.put("title", hit.getTitle());
-            result.put("artist", hit.getArtist().getName());
-            result.put("imageUrl", hit.getImageUrl());
-
             return result;
 
         } catch (IOException e) {

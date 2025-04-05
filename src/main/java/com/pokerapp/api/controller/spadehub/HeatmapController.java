@@ -21,4 +21,11 @@ public class HeatmapController {
     public ResponseEntity<List<HeatmapService.HeatmapDataPoint>> getHeatmapData() {
         return ResponseEntity.ok(heatmapService.getHeatmapData());
     }
+
+
+
+
+
+
+    //TODO: JONAS kannst du bitte deinen optimalen chip counter iwie einbinden. Also den den du schonmal gecoded hast. DANKE :)
 }
