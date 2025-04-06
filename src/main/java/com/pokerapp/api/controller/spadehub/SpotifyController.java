@@ -64,20 +64,4 @@ public class SpotifyController {
 
         return ResponseEntity.ok(result);
     }
-
-    @GetMapping("/karaoke")
-    public ResponseEntity<Map<String, Object>> getKaraokeTimeline(
-            @RequestParam String artist,
-            @RequestParam String title,
-            @RequestParam(defaultValue = "180") int duration,
-            @RequestParam(defaultValue = "5") int chunks) {
-
-        Map<String, Object> result = spotifyService.generateKaraokeTimeline(artist, title, duration, chunks);
-
-        if (result.containsKey("error")) {
-            return ResponseEntity.status(404).body(result);
-        }
-
-        return ResponseEntity.ok(result);
-    }
 }
