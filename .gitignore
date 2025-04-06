@@ -70,5 +70,7 @@ org/
 *.pub
 
 # Spring Boot Config (sensible Daten)
-src/main/resources/
-application-*.yml
+src/main/resources/application.yml
+src/main/resources/keystore.p12
+src/main/resources/app.key
+src/main/resources/app.pub
