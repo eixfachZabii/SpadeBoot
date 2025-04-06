@@ -1,6 +1,8 @@
-// src/main/java/com/pokerapp/service/HeatmapService.java
+// src/main/java/com/pokerapp/service/spadehub/CheatsheetService.java
 package com.pokerapp.service.spadehub;
 
+import com.pokerapp.api.dto.request.ChipInventoryDto;
+import com.pokerapp.api.dto.response.ChipDistributionDto;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,12 +10,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Getter
 @Service
-public class HeatmapService {
+public class CheatsheetService {
 
     private List<HeatmapDataPoint> heatmapData = new ArrayList<>();
 
@@ -209,13 +210,186 @@ public class HeatmapService {
         return data;
     }
 
-        @Data
-        @NoArgsConstructor
-        @AllArgsConstructor
-        public static class HeatmapDataPoint {
-            private String x;
-            private String y;
-            private Double heat;
-            private String symbol;
+
+    //TODO: JONAS: Ist dein chip distribution code. Der mag alles unter 600 irgendwie nicht und wirft fehler :(
+    public ChipDistributionDto calculateOptimalChipDistribution(ChipInventoryDto inventory) {
+        // Convert inventory to arrays for the algorithm
+        int[] chipAnzahl = new int[]{
+                inventory.getChip1(),
+                inventory.getChip5(),
+                inventory.getChip10(),
+                inventory.getChip25(),
+                inventory.getChip100(),
+                inventory.getChip500()
+        };
+
+        int[] chipWert = new int[]{1, 5, 10, 25, 100, 500};
+        int chipTypZahl = 6;
+
+        // Get target value from input or use default
+        int G = inventory.getTargetValue() > 0 ? inventory.getTargetValue() : 1000;
+
+        // Calculate total value
+        int gesW = 0;
+        for (int i = 0; i < chipTypZahl; i++) {
+            gesW += chipAnzahl[i] * chipWert[i];
+        }
+
+        // Calculate maximum number of players
+        int maxSpieler = gesW / G;
+        if (maxSpieler == 0) {
+            return createFailureResult("Total value is less than the target value per player");
+        }
+
+        // Call the optimization logic
+        int[] spielerChipVerteilung = rekursion(chipAnzahl, chipWert, chipTypZahl, maxSpieler, G, gesW);
+
+        if (spielerChipVerteilung == null) {
+            return createFailureResult("Could not find an optimal distribution");
+        }
+
+        // Create result DTO
+        return createSuccessResult(spielerChipVerteilung, chipWert, maxSpieler, G);
+    }
+
+    private int[] rekursion(int[] chipAnzahl, int[] chipWert, int chipTypZahl, int maxSpieler, int G, int gesW) {
+        if (maxSpieler == 0) {
+            if (chipTypZahl == 0) {
+                return null;
+            }
+            chipTypZahl--;
+            maxSpieler = gesW / G;
+        }
+
+        int[] spielerChipVerteilung = new int[chipTypZahl];
+        for (int i = 0; i < chipTypZahl; i++) {
+            spielerChipVerteilung[i] = chipAnzahl[i] / maxSpieler;
+        }
+
+        int spielerWert = 0;
+        for (int i = 0; i < chipTypZahl; i++) {
+            spielerWert += spielerChipVerteilung[i] * chipWert[i];
+        }
+
+        if (spielerWert == G) {
+            return spielerChipVerteilung;
+        } else if (spielerWert < G) {
+            maxSpieler--;
+            return rekursion(chipAnzahl, chipWert, chipTypZahl, maxSpieler, G, gesW);
+        } else {
+            int[] abgebbareChips = new int[chipWert.length];
+            for (int i = 0; i < spielerChipVerteilung.length; i++) {
+                abgebbareChips[i] = Math.max(spielerChipVerteilung[i] - 1, 0);
+            }
+
+            int[] abzuziehendeChips = minCoinsWithDistribution(chipWert, abgebbareChips, spielerWert - G);
+            if (abzuziehendeChips == null) {
+                maxSpieler--;
+                return rekursion(chipAnzahl, chipWert, chipTypZahl, maxSpieler, G, gesW);
+            }
+
+            for (int i = 0; i < chipTypZahl; i++) {
+                spielerChipVerteilung[i] -= abzuziehendeChips[i];
+                if (spielerChipVerteilung[i] < 0) {
+                    // Handle error
+                    return null;
+                }
+            }
+
+            spielerWert = 0;
+            for (int i = 0; i < chipTypZahl; i++) {
+                spielerWert += spielerChipVerteilung[i] * chipWert[i];
+            }
+
+            if (spielerWert != G) {
+                // Handle error
+                return null;
+            }
+
+            return spielerChipVerteilung;
         }
     }
+
+    private int[] minCoinsWithDistribution(int[] coins, int[] maxCounts, int target) {
+        int[] dp = new int[target + 1];
+        Arrays.fill(dp, Integer.MAX_VALUE);
+        dp[0] = 0;
+
+        int[][] usedCoins = new int[target + 1][coins.length];
+
+        for (int i = 0; i < coins.length; i++) {
+            int coin = coins[i];
+            int maxCount = maxCounts[i];
+
+            for (int j = target; j >= 0; j--) {
+                for (int k = 1; k <= maxCount && k * coin <= j; k++) {
+                    if (dp[j - k * coin] != Integer.MAX_VALUE) {
+                        int newCount = dp[j - k * coin] + k;
+                        if (newCount < dp[j]) {
+                            dp[j] = newCount;
+
+                            System.arraycopy(usedCoins[j - k * coin], 0, usedCoins[j], 0, coins.length);
+                            usedCoins[j][i] += k;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (dp[target] == Integer.MAX_VALUE) {
+            return null;
+        }
+
+        return usedCoins[target];
+    }
+
+    private ChipDistributionDto createSuccessResult(int[] distribution, int[] values, int maxPlayers, int targetValue) {
+        ChipDistributionDto result = new ChipDistributionDto();
+        result.setMaxPlayers(maxPlayers);
+        result.setValuePerPlayer(targetValue);
+
+        // Calculate total chips per player
+        int chipsPerPlayer = 0;
+        for (int count : distribution) {
+            chipsPerPlayer += count;
+        }
+        result.setChipsPerPlayer(chipsPerPlayer);
+
+        // Calculate efficiency percentage
+        int actualValue = 0;
+        for (int i = 0; i < distribution.length; i++) {
+            actualValue += distribution[i] * values[i];
+        }
+        result.setEfficiency((int) Math.round((double) actualValue / targetValue * 100));
+
+        // Create player distribution map
+        Map<String, Integer> playerDist = new HashMap<>();
+        playerDist.put("chip1", distribution[0]);
+        playerDist.put("chip5", distribution[1]);
+        playerDist.put("chip10", distribution[2]);
+        playerDist.put("chip25", distribution[3]);
+        playerDist.put("chip100", distribution[4]);
+        playerDist.put("chip500", distribution[5]);
+        result.setPlayerDistribution(playerDist);
+
+        return result;
+    }
+
+    private ChipDistributionDto createFailureResult(String errorMessage) {
+        ChipDistributionDto result = new ChipDistributionDto();
+        result.setError(errorMessage);
+        result.setSuccess(false);
+        return result;
+    }
+
+    // Data classes
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class HeatmapDataPoint {
+        private String x;
+        private String y;
+        private Double heat;
+        private String symbol;
+    }
+}

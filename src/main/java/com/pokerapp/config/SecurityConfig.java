@@ -53,12 +53,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/register", "/api/users/register/").permitAll()
                         .requestMatchers("/api/users/login", "/api/users/login/").permitAll()
 
-                        // Spotify endpoints that need public access
+                        // Hub endpoints that need public access
                         .requestMatchers("/api/spotify/login").permitAll()
                         .requestMatchers("/api/spotify/callback").permitAll()
                         .requestMatchers("/api/spotify/refresh_token").permitAll()
                         .requestMatchers("/api/spotify/lyrics").permitAll()
                         .requestMatchers("/api/spotify/debug/**").permitAll()
+                        .requestMatchers("/api/cheatsheet/**").permitAll()
 
                         // WebSocket endpoints
                         .requestMatchers("/ws/**").permitAll()
@@ -78,7 +79,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/players/**").authenticated()
 
                         // Default policy: require authentication
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
