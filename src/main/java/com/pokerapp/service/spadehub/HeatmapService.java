@@ -4,12 +4,14 @@ package com.pokerapp.service.spadehub;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 @Service
 public class HeatmapService {
 
@@ -18,10 +20,6 @@ public class HeatmapService {
     @PostConstruct
     public void initializeHeatmapData() {
         this.heatmapData = createHeatmapData();
-    }
-
-    public List<HeatmapDataPoint> getHeatmapData() {
-        return heatmapData;
     }
 
     private List<HeatmapDataPoint> createHeatmapData() {
@@ -131,7 +129,7 @@ public class HeatmapService {
         data.add(new HeatmapDataPoint("7", "T", 0.51, "s\n 25"));
         data.add(new HeatmapDataPoint("7", "9", 0.49, "s\n 24"));
         data.add(new HeatmapDataPoint("7", "8", 0.48, "s\n 21"));
-        data.add(new HeatmapDataPoint("7", "7", 0.66, "s\n 12"));
+        data.add(new HeatmapDataPoint("7", "7", 0.66, "\n 12"));
         data.add(new HeatmapDataPoint("7", "6", 0.42, "o\n 57"));
         data.add(new HeatmapDataPoint("7", "5", 0.41, "o\n 65"));
         data.add(new HeatmapDataPoint("7", "4", 0.39, "o\n 78"));
