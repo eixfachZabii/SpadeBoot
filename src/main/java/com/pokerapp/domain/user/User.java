@@ -34,14 +34,4 @@ public class User {
     public boolean isAdmin() {
         return "ROLE_ADMIN".equals(this.role);
     }
-
-    // Method to promote to admin
-    public void promoteToAdmin() {
-        this.role = "ROLE_ADMIN";
-    }
-
-    // Method to demote to user
-    public void demoteToUser() {
-        this.role = "ROLE_USER";
-    }
 }

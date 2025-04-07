@@ -77,6 +77,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/tables/**").authenticated()
                         .requestMatchers("/api/games/**").authenticated()
                         .requestMatchers("/api/players/**").authenticated()
+                        .requestMatchers("/api/friends/**").authenticated()
 
                         // Default policy: require authentication
                         .anyRequest().authenticated()

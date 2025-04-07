@@ -229,6 +229,9 @@ public class CheatsheetService {
         // Get target value from input or use default
         int G = inventory.getTargetValue() > 0 ? inventory.getTargetValue() : 1000;
 
+        // Set tolerance (how close to G is acceptable)
+        int tolerance = Math.max(1, G / 100); // 1% tolerance, minimum 1
+
         // Calculate total value
         int gesW = 0;
         for (int i = 0; i < chipTypZahl; i++) {
@@ -241,72 +244,148 @@ public class CheatsheetService {
             return createFailureResult("Total value is less than the target value per player");
         }
 
-        // Call the optimization logic
-        int[] spielerChipVerteilung = rekursion(chipAnzahl, chipWert, chipTypZahl, maxSpieler, G, gesW);
+        // Call the improved optimization logic (iterative)
+        int[] spielerChipVerteilung = findOptimalDistribution(chipAnzahl, chipWert, chipTypZahl, maxSpieler, G, gesW, tolerance);
 
         if (spielerChipVerteilung == null) {
             return createFailureResult("Could not find an optimal distribution");
         }
 
-        // Create result DTO
-        return createSuccessResult(spielerChipVerteilung, chipWert, maxSpieler, G);
+        // Calculate actual player value
+        int actualValue = 0;
+        for (int i = 0; i < chipTypZahl; i++) {
+            actualValue += spielerChipVerteilung[i] * chipWert[i];
+        }
+
+        // Create result DTO - passing the actual number of players calculated
+        return createSuccessResult(spielerChipVerteilung, chipWert, maxSpieler, G, actualValue);
     }
 
-    private int[] rekursion(int[] chipAnzahl, int[] chipWert, int chipTypZahl, int maxSpieler, int G, int gesW) {
-        if (maxSpieler == 0) {
-            if (chipTypZahl == 0) {
-                return null;
-            }
-            chipTypZahl--;
-            maxSpieler = gesW / G;
-        }
+    /**
+     * Improved iterative version that avoids stack overflow
+     */
+    private int[] findOptimalDistribution(int[] chipAnzahl, int[] chipWert, int chipTypZahl,
+                                          int maxSpieler, int G, int gesW, int tolerance) {
+        // Maximum iterations to prevent infinite loops
+        final int MAX_ITERATIONS = 1000;
+        int iterations = 0;
 
-        int[] spielerChipVerteilung = new int[chipTypZahl];
-        for (int i = 0; i < chipTypZahl; i++) {
-            spielerChipVerteilung[i] = chipAnzahl[i] / maxSpieler;
-        }
+        // Track best distribution found so far
+        int[] bestDistribution = null;
+        int bestDifference = Integer.MAX_VALUE;
 
-        int spielerWert = 0;
-        for (int i = 0; i < chipTypZahl; i++) {
-            spielerWert += spielerChipVerteilung[i] * chipWert[i];
-        }
+        // Create a stack to simulate recursion
+        Stack<DistributionState> stateStack = new Stack<>();
+        stateStack.push(new DistributionState(maxSpieler, chipTypZahl));
 
-        if (spielerWert == G) {
-            return spielerChipVerteilung;
-        } else if (spielerWert < G) {
-            maxSpieler--;
-            return rekursion(chipAnzahl, chipWert, chipTypZahl, maxSpieler, G, gesW);
-        } else {
-            int[] abgebbareChips = new int[chipWert.length];
-            for (int i = 0; i < spielerChipVerteilung.length; i++) {
-                abgebbareChips[i] = Math.max(spielerChipVerteilung[i] - 1, 0);
+        while (!stateStack.isEmpty() && iterations < MAX_ITERATIONS) {
+            iterations++;
+            DistributionState state = stateStack.pop();
+            maxSpieler = state.maxSpieler;
+            chipTypZahl = state.chipTypZahl;
+
+            // Base case - can't create any players or no chip types left
+            if (maxSpieler <= 0 || chipTypZahl <= 0) {
+                continue;
             }
 
-            int[] abzuziehendeChips = minCoinsWithDistribution(chipWert, abgebbareChips, spielerWert - G);
-            if (abzuziehendeChips == null) {
-                maxSpieler--;
-                return rekursion(chipAnzahl, chipWert, chipTypZahl, maxSpieler, G, gesW);
-            }
-
+            // Calculate distribution for current number of players
+            int[] spielerChipVerteilung = new int[chipTypZahl];
             for (int i = 0; i < chipTypZahl; i++) {
-                spielerChipVerteilung[i] -= abzuziehendeChips[i];
-                if (spielerChipVerteilung[i] < 0) {
-                    // Handle error
-                    return null;
-                }
+                spielerChipVerteilung[i] = chipAnzahl[i] / maxSpieler;
             }
 
-            spielerWert = 0;
+            // Calculate value per player
+            int spielerWert = 0;
             for (int i = 0; i < chipTypZahl; i++) {
                 spielerWert += spielerChipVerteilung[i] * chipWert[i];
             }
 
-            if (spielerWert != G) {
-                // Handle error
-                return null;
+            // Calculate how far we are from target
+            int difference = Math.abs(spielerWert - G);
+
+            // Check if this is the best distribution so far
+            if (difference < bestDifference) {
+                bestDistribution = spielerChipVerteilung.clone();
+                bestDifference = difference;
             }
 
-            return spielerChipVerteilung;
+            // Exact match - optimal solution found
+            if (spielerWert == G) {
+                return spielerChipVerteilung;
+            }
+            // Value too low - try with fewer players
+            else if (spielerWert < G) {
+                stateStack.push(new DistributionState(maxSpieler - 1, chipTypZahl));
+            }
+            // Value too high - try to adjust distribution
+            else {
+                // Try to reduce player value by removing some chips
+                int[] abgebbareChips = new int[chipWert.length];
+                for (int i = 0; i < spielerChipVerteilung.length; i++) {
+                    abgebbareChips[i] = Math.max(spielerChipVerteilung[i] - 1, 0);
+                }
+
+                int[] abzuziehendeChips = minCoinsWithDistribution(chipWert, abgebbareChips, spielerWert - G);
+
+                if (abzuziehendeChips == null) {
+                    // Can't adjust - try fewer players
+                    stateStack.push(new DistributionState(maxSpieler - 1, chipTypZahl));
+                } else {
+                    // Adjust distribution by removing calculated chips
+                    boolean valid = true;
+                    for (int i = 0; i < chipTypZahl; i++) {
+                        spielerChipVerteilung[i] -= abzuziehendeChips[i];
+                        if (spielerChipVerteilung[i] < 0) {
+                            valid = false;
+                            break;
+                        }
+                    }
+
+                    if (valid) {
+                        // Recalculate value with adjusted distribution
+                        int adjustedWert = 0;
+                        for (int i = 0; i < chipTypZahl; i++) {
+                            adjustedWert += spielerChipVerteilung[i] * chipWert[i];
+                        }
+
+                        // If exact match, return it
+                        if (adjustedWert == G) {
+                            return spielerChipVerteilung;
+                        }
+
+                        // Check if this adjusted distribution is better
+                        int adjustedDiff = Math.abs(adjustedWert - G);
+                        if (adjustedDiff < bestDifference) {
+                            bestDistribution = spielerChipVerteilung.clone();
+                            bestDifference = adjustedDiff;
+                        }
+                    }
+
+                    // Try fewer players as well
+                    stateStack.push(new DistributionState(maxSpieler - 1, chipTypZahl));
+                }
+            }
+        }
+
+        // If we found a distribution within tolerance, return it
+        if (bestDistribution != null && bestDifference <= tolerance) {
+            return bestDistribution;
+        }
+
+        return null; // No suitable distribution found
+    }
+
+    /**
+     * Helper class to track state for iterative solution
+     */
+    private static class DistributionState {
+        int maxSpieler;
+        int chipTypZahl;
+
+        DistributionState(int maxSpieler, int chipTypZahl) {
+            this.maxSpieler = maxSpieler;
+            this.chipTypZahl = chipTypZahl;
         }
     }
 
@@ -343,7 +422,11 @@ public class CheatsheetService {
         return usedCoins[target];
     }
 
-    private ChipDistributionDto createSuccessResult(int[] distribution, int[] values, int maxPlayers, int targetValue) {
+    /**
+     * Create success result with adjusted efficiency calculation
+     */
+    private ChipDistributionDto createSuccessResult(int[] distribution, int[] values,
+                                                    int maxPlayers, int targetValue, int actualValue) {
         ChipDistributionDto result = new ChipDistributionDto();
         result.setMaxPlayers(maxPlayers);
         result.setValuePerPlayer(targetValue);
@@ -355,11 +438,7 @@ public class CheatsheetService {
         }
         result.setChipsPerPlayer(chipsPerPlayer);
 
-        // Calculate efficiency percentage
-        int actualValue = 0;
-        for (int i = 0; i < distribution.length; i++) {
-            actualValue += distribution[i] * values[i];
-        }
+        // Calculate efficiency percentage based on how close to target
         result.setEfficiency((int) Math.round((double) actualValue / targetValue * 100));
 
         // Create player distribution map
