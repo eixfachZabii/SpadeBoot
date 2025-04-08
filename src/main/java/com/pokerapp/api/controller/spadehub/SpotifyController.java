@@ -39,7 +39,7 @@ public class SpotifyController {
 
         // Redirect to the FRONTEND (not backend) with tokens
         return new RedirectView(
-                "https://127.0.0.1:3000/spotify#access_token=" + accessToken +
+                "https://127.0.0.1:3001/spotify#access_token=" + accessToken +
                         "&refresh_token=" + refreshToken +
                         "&expires_at=" + expiresAt
         );

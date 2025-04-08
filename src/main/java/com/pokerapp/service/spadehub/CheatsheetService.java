@@ -211,7 +211,7 @@ public class CheatsheetService {
     }
 
 
-    //TODO: JONAS: Ist dein chip distribution code. Der mag alles unter 600 irgendwie nicht und wirft fehler :(
+    //TODO: JONAS: Falls du willst kannst du nochmal drüber schauen ^^
     public ChipDistributionDto calculateOptimalChipDistribution(ChipInventoryDto inventory) {
         // Convert inventory to arrays for the algorithm
         int[] chipAnzahl = new int[]{
