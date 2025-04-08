@@ -76,6 +76,8 @@ public class Player {
 
     //^^keine Ahnung was das alles hier oben drüber soll
     //Ab hier code für Backend Logik
+    //TODO: JONAS: Ich tracke player chips und user balance getrennt: Player: Bargeld fürs Spielen. User: Bankkonto
+    // Damit kann ich für die Analytics sowas wie profit besser tracken ^^ Sebi :)
 
     public void pay(int amount) {
         chips+=amount;

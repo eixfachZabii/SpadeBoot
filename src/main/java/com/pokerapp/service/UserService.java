@@ -183,6 +183,7 @@ public class UserService {
     public User updateUserBalance(Long userId, Integer amount) {
         User user = getUserById(userId);
         user.setBalance(user.getBalance() + amount);
+        user.setAbsInvestment(user.getAbsInvestment() + amount);
         return userRepository.save(user);
     }
 }

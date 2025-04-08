@@ -23,6 +23,8 @@ public class User {
 
     private Integer balance = 1000; // Default starting balance
 
+    private Integer absInvestment = balance;
+
     @Lob
     @Column(columnDefinition = "MEDIUMBLOB")
     private byte[] avatar;
